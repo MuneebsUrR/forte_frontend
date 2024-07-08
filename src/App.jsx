@@ -6,26 +6,25 @@ import Footer from './container/Footer';
 import Home from './container/Home';
 import Instructions from './container/Instructions'
 import Welcome from './container/Welcome'
-const App = () => {
-  // Use the useLocation hook to get the current location
-  const location = useLocation();
+import ToggleColorMode from './container/ToggleColorMode';
+import { ThemeProviderCustom } from './Context/Theme';
 
-  // Conditionally render Navbar and Footer based on the path
-  const shouldRenderNavAndFooter = !['/', '/instructions','/login'].includes(location.pathname);
+const App = () => {
+  const location = useLocation();
+  const shouldRenderNavAndFooter = !['/', '/instructions', '/login'].includes(location.pathname);
 
   return (
-    <>
+    <ThemeProviderCustom>
       {shouldRenderNavAndFooter && <Navbar />}
-      
       <Routes>
         <Route exact path="/login" element={<Login />} />
         <Route exact path="/home" element={<Home />} />
         <Route exact path="/instructions" element={<Instructions />} />
         <Route exact path="/" element={<Welcome />} />
+        <Route exact path="/dark" element={<ToggleColorMode />} />
       </Routes>
-      
       {shouldRenderNavAndFooter && <Footer />}
-    </>
+    </ThemeProviderCustom>
   );
 };
 

@@ -3,9 +3,12 @@ import { ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FastNuLogo from '../assets/FAST.png';
 import FastLogo from '../assets/FAST2.png';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import { useTheme } from '../Context/Theme';
 
-const TestInstructions = () => {
+const Welcome = () => {
   const navigate = useNavigate();
+  const { mode, toggleTheme } = useTheme();
 
   const steps = [
     { number: 1, title: 'Login to the test', instructions: [
@@ -37,20 +40,20 @@ const TestInstructions = () => {
   };
 
   return (
-    <div className="font-sans max-w-4xl mx-auto p-4 bg-black text-white">
+    <div className={`font-sans max-w-4xl mx-auto p-4 border-2 ${mode === 'dark' ? 'bg-black text-white border-black' : 'bg-gray-200 text-black border-gray-200'}`}>
       <div className="flex justify-between items-center mb-4">
         <img src={FastNuLogo} alt="FAST-NU Logo" className="w-12 h-12" />
         <img src={FastLogo} alt="FAST Logo" className="w-12 h-12" />
+        <Brightness4Icon onClick={toggleTheme} className="cursor-pointer" />
       </div>
-      
-      <h1 className="text-2xl font-bold text-center mb-6">Welcome to the FAST-NU Online Admission Test</h1>
-      
-      <div className="bg-blue-900 text-white py-2 px-4 mb-4">
-        <h2 className="text-lg font-semibold">How to take the test?</h2>
+      <h1 className={`text-2xl font-bold text-center mb-6 ${mode === 'dark' ? 'text-white' : 'text-black'}`}>
+        Welcome to the FAST-NU Online Admission Test
+      </h1>
+      <div className={`py-2 px-4 mb-4 ${mode === 'dark' ? 'bg-blue-900 text-white' : 'bg-blue-200 text-black'}`}>
+        <h2 className={`text-lg font-semibold ${mode === 'dark' ? 'text-white' : 'text-black'}`}>How to take the test?</h2>
       </div>
-      
       {steps.map((step) => (
-        <div key={step.number} className={`mb-4 p-2 text-black ${step.number % 2 === 0 ? 'bg-gray-100' : 'bg-white'}`}>
+         <div key={step.number} className={`mb-4 p-2 ${mode === 'dark' ? 'bg-black text-white ' : 'bg-white text-black '}`}>
           <div className="flex items-start">
             <div className="font-bold w-24">STEP {step.number}</div>
             <div className="flex-1">
@@ -64,7 +67,6 @@ const TestInstructions = () => {
           </div>
         </div>
       ))}
-      
       <div className="mt-4">
         <p className="font-bold mb-2">Note:</p>
         <ul className="list-disc pl-5">
@@ -74,9 +76,7 @@ const TestInstructions = () => {
           <li>First and last question of each section are highlighted.</li>
         </ul>
       </div>
-      
       <p className="text-center font-bold mt-4 mb-2">GOOD LUCK!</p>
-      
       <div className="text-center">
         <button 
           className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded transition duration-300"
@@ -85,10 +85,9 @@ const TestInstructions = () => {
           Continue <ChevronRight className="inline-block ml-1" size={16} />
         </button>
       </div>
-      
       <p className="text-center text-sm mt-4">© National University of Computer and Emerging Sciences</p>
     </div>
   );
 };
 
-export default TestInstructions;
+export default Welcome;

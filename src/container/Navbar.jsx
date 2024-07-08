@@ -1,60 +1,29 @@
 import { useState } from "react";
 import styles from "../style";
-
 import { close, logo, menu } from "../assets";
+import { useTheme } from '../Context/Theme';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
 
 
 const Navbar = () => {
-  const [toggle, setToggle] = useState(false)
+  const [toggle, setToggle] = useState(false);
+  const { mode, toggleTheme } = useTheme();
 
-  function logic() {
-    setToggle(prevtoggle => !prevtoggle);
+  function toggleMenu() {
+    setToggle(prevToggle => !prevToggle);
   }
 
-  
-
   return (
-    <nav className={`w-full flex ${styles.paddingX} py-6 justify-between items-center navbar h-[10vh] `}>
+    <nav className={`w-full flex ${styles.paddingX} py-6 justify-between items-center navbar h-[10vh] ${mode === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
       <img src={logo} alt="hoobank" className="w-[124px] h-[32px]" />
-
       <h1 className="flex items-center justify-center w-full text-[24px] text-center font-bold text-gradient">Test Name</h1>
-
-      <img src={toggle ? close : menu} alt="" onClick={logic} className="w-[27px] h-[27px] object-contain" />
-
-
-      {/* <ul className="list-none sm:flex hidden justify-end  items-center flex-1">
-        {
-          navLinks.map((nav, index) => {
-            return (
-
-              <li key={index} className={`font-poppins font-normal cursor-pointer text-[16px] text-white ${index === navLinks.length - 1 ? 'mr-0' : 'mr-10'}`}>
-                <a className="cursor-pointer" href={`${nav.id}`}>{nav.title}</a>
-              </li>
-            )
-          })
-        }
-      </ul> */}
-
-
-      {/* <div className="sm:hidden flex flex-1 justify-end items-center">
-        <img src={toggle ? close : menu} alt="" onClick={logic} className="w-[27px] h-[27px] object-contain" />
+      <Brightness4Icon onClick={toggleTheme} className="cursor-pointer" />
+      {/* <img src={toggle ? close : menu} alt=""
+        onClick={toggleMenu}
+        className={`w-[27px] h-[27px] object-contain ${mode === 'dark' ? 'filter invert(1) brightness(200%)' : ''}`} />
+     */}
+      {/* <div className={`${toggle ? 'flex' : 'hidden'} p-6 ${mode === 'dark' ? 'bg-black' : 'bg-white'} absolute top-20 right-0 mx-4 my-2 min-w-[140px] rounded-xl sidebar`}>  
       </div> */}
-
-      <div className={`${toggle ? 'flex' : 'hidden'} p-6 bg-black-gradient absolute top-20 right-0 mx-4 my-2 min-w-[140px] rounded-xl sidebar`}>
-        {/* <ul className="list-none flex-col justify-end items-center flex-1">
-          {
-            navLinks.map((nav, index) => {
-              return (
-
-                <li key={index} className={`font-poppins font-normal text-center cursor-pointer text-[16px] mt-2 text-white ${index === navLinks.length - 1 ? 'mr-0' : 'mb-2'}`}>
-                  <a className="cursor-pointer" href={`${nav.id}`}>{nav.title}</a>
-                </li>
-              )
-            })
-          }
-        </ul> */}
-      </div>
-
     </nav>
   );
 };
