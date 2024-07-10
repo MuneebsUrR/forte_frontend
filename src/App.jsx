@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import New from "./components/New";
-import Header from "./components/Header"; // Import Header
+import Header from "./components/Header"; 
 import Footer from "./components/Footer";
 import Home from "./container/Home";
 import Login from "./container/Login";
@@ -31,14 +31,12 @@ const App = () => {
     <>
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
-        <Header theme={theme} changeTheme={changeTheme} /> {/* Pass theme and changeTheme to Header */}
-        
-        <Home />
-        {/* <Welcome/> */}
+        <Header theme={theme} changeTheme={changeTheme} />
+        {/* <Home /> */}
+        {/* <Welcome/>  */}
         {/* <Login/> */}
         {/* <Picture/> */}
-        {/* <Instructions/> */}
-
+        <Instructions/>
         <Footer/>
       </ThemeProvider>
     </>
@@ -46,9 +44,3 @@ const App = () => {
 };
 
 export default App;
-
-
-// <main className="bg-color-1">
-// {/* This app is using the {theme} mode */}
-
-// </main>
