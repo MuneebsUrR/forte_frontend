@@ -28,17 +28,19 @@ const Home = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('http://localhost:7000/getquestions');
+      const response = await fetch('http://localhost:7000/questions/getquestions');
       const data = await response.json();
-      setQuestionData(data);
+      console.log(data.questions)
+      // setQuestionData(data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
 
     try {
-      const response = await fetch('http://localhost:7000/getchoices');
+      const response = await fetch('http://localhost:7000/questions/getchoices');
       const data = await response.json();
-      setQuestionChoices(data);
+      console.log(data.choices)
+      // setQuestionChoices(data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
