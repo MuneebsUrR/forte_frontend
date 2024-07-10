@@ -3,7 +3,8 @@ import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import { Button, Radio, Typography } from '@mui/material';
 
 const Questions = ({
-    questionData,
+    dataQuestions,
+    questionChoices,
     questionIndex,
     filterChoices,
     selectedOptions,
@@ -21,7 +22,7 @@ const Questions = ({
                 </Typography>
                 <MathJax>
                     <Typography className='ml-4 mr-4 mb-4'>
-                        {questionData && questionData[questionIndex].QUESTION_TEXT}
+                        {dataQuestions && dataQuestions[questionIndex].QUESTION_TEXT}
                     </Typography>
                 </MathJax>
                 {filterChoices && filterChoices.map((choice, index) => {
@@ -57,7 +58,7 @@ const Questions = ({
                         <Button
                             variant="contained"
                             onClick={handleNextClick}
-                            disabled={questionData && questionIndex >= questionData.length - 1}
+                            disabled={dataQuestions && questionIndex >= dataQuestions.length - 1}
                         >
                             Next
                         </Button>

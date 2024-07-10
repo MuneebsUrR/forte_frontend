@@ -7,8 +7,10 @@ import Login from './Login';
 const Home = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const [questionStatus, setQuestionStatus] = useState({});
-  const [questionData, setQuestionData] = useState(null);
+ 
+  const [dataQuestions, setDataQuestions] = useState(null);
   const [questionChoices, setQuestionChoices] = useState(null);
+
   const [filterChoices, setFilterChoices] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
 
@@ -26,38 +28,45 @@ const Home = () => {
     });
   };
 
-  const fetchData = async () => {
+  const fetchQuestionsData = async () => {
     try {
       const response = await fetch('http://localhost:7000/questions/getquestions');
       const data = await response.json();
-      console.log(data.questions)
-      // setQuestionData(data);
+      setDataQuestions(data.questions);
+      console.log("questions", dataQuestions)
+     
     } catch (error) {
       console.error('Error fetching data:', error);
     }
 
+  };
+
+  const fetchChoicesData = async () => {
     try {
       const response = await fetch('http://localhost:7000/questions/getchoices');
       const data = await response.json();
-      console.log(data.choices)
-      // setQuestionChoices(data);
+      setQuestionChoices(data.choices);
+      console.log("choices", questionChoices)
     } catch (error) {
+
       console.error('Error fetching data:', error);
     }
-  };
+  }
 
   useEffect(() => {
-    fetchData();
+    fetchQuestionsData();
+    fetchChoicesData();
   }, []);
 
   useEffect(() => {
-    if (questionChoices && questionData) {
+    if (questionChoices && dataQuestions) {
       const filteredChoices = questionChoices.filter((choice) => {
-        return choice.QUESTION_ID === questionData[questionIndex].QUESTION_ID;
+        return choice.QUESTION_ID === dataQuestions[questionIndex].QUESTION_ID;
       });
       setFilterChoices(filteredChoices);
+      console.log("filteredChoices", filterChoices)
     }
-  }, [questionIndex, questionData, questionChoices]);
+  }, [questionIndex, dataQuestions, questionChoices]);
 
   const handleBackClick = () => {
     setQuestionIndex(questionIndex - 1);
@@ -87,7 +96,8 @@ const Home = () => {
     return Object.keys(questionStatus).filter(key => questionStatus[key] === status);
   };
 
-  const totalQuestions = questionData ? questionData.length : 0;
+  const totalQuestions = 0;
+ 
   const completedQuestions = categorizeQuestions('completed');
   const skippedQuestions = categorizeQuestions('skipped');
   const reviewedQuestions = categorizeQuestions('reviewed');
@@ -99,7 +109,8 @@ const Home = () => {
       </div>
       <div className='flex sm:flex-row flex-col h-[90%] mt-3 px-4'>
         <Questions
-          questionData={questionData}
+          dataQuestions={dataQuestions}
+          questionChoices={questionChoices}
           questionIndex={questionIndex}
           filterChoices={filterChoices}
           selectedOptions={selectedOptions}
@@ -122,7 +133,7 @@ const Home = () => {
         />
       </div>
     </main>
-    
+
   );
 }
 
