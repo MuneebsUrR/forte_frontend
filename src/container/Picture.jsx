@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
 import Button from '@mui/material/Button';
 import * as faceapi from 'face-api.js';
@@ -10,6 +11,7 @@ const Picture = () => {
   const [isFaceDetected, setIsFaceDetected] = useState(false);
   const [numFaces, setNumFaces] = useState(0);
   const theme = useTheme();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadModels = async () => {
@@ -28,7 +30,6 @@ const Picture = () => {
   const detectFace = async () => {
     try {
       if (webcamRef.current && webcamRef.current.video.readyState === 4) {
-        
         const video = webcamRef.current.video;
         console.log("Video element:", video);
         const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({
@@ -67,6 +68,8 @@ const Picture = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    navigate('/instructions');
   };
 
   return (

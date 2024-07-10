@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Checkbox, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useTheme } from '@mui/material';
 
 const Header = () => (
@@ -85,6 +86,16 @@ const TestSummary = () => (
 const Instructions = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+  const [checked, setChecked] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCheckboxChange = (event) => {
+    setChecked(event.target.checked);
+  };
+
+  const handleStartTest = () => {
+    navigate('/home');
+  };
 
   return (
     <Container 
@@ -102,11 +113,18 @@ const Instructions = () => {
       <GeneralInstructions />
       <TestSummary />
       <FormControlLabel
-        control={<Checkbox name="checkedA" />}
+        control={<Checkbox checked={checked} onChange={handleCheckboxChange} name="checkedA" />}
         label="I have carefully read the instructions and I agree to follow them"
         sx={{ color: isDarkMode ? 'text.primary' : 'text.secondary' }}
       />
-      <Button variant="contained" color="primary">Start Test</Button>
+      <Button 
+        variant="contained" 
+        color="primary" 
+        onClick={handleStartTest} 
+        disabled={!checked}
+      >
+        Start Test
+      </Button>
     </Container>
   );
 };

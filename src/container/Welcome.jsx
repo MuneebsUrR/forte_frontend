@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => (
   <header className="text-center my-8">
@@ -53,19 +53,32 @@ const Instructions_Detail = () => (
   </div>
 );
 
-const Notes = () => (
-  <div className="mt-8 p-4">
-    <h3 className="text-xl font-semibold">Note:</h3>
-    <ul className="list-disc ml-5">
-      <li>Each section has a time limit.</li>
-      <li>Next section will be automatically displayed on your screen when previous section's allocated time is up.</li>
-      <li>You will not be able to come back to a section after you have completed a section.</li>
-      <li>First and last question of each section are highlighted.</li>
-    </ul>
-    <p className=" font-bold mt-4 mb-2">GOOD LUCK!</p>
-    <button className="text-center mt-4 px-4 py-2 bg-blue-500 text-white rounded">Continue</button>
-  </div>
-);
+const Notes = () => {
+  const navigate = useNavigate();
+
+  const handleContinue = () => {
+    navigate('/login');
+  };
+
+  return (
+    <div className="mt-8 p-4">
+      <h3 className="text-xl font-semibold">Note:</h3>
+      <ul className="list-disc ml-5">
+        <li>Each section has a time limit.</li>
+        <li>Next section will be automatically displayed on your screen when previous section's allocated time is up.</li>
+        <li>You will not be able to come back to a section after you have completed a section.</li>
+        <li>First and last question of each section are highlighted.</li>
+      </ul>
+      <p className=" font-bold mt-4 mb-2">GOOD LUCK!</p>
+      <button 
+        className="text-center mt-4 px-4 py-2 bg-blue-500 text-white rounded" 
+        onClick={handleContinue}
+      >
+        Continue
+      </button>
+    </div>
+  );
+};
 
 const Welcome = () => {
   return (

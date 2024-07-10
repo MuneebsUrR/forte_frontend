@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import New from "./components/New";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from "./components/Header"; 
 import Footer from "./components/Footer";
 import Home from "./container/Home";
@@ -28,18 +28,20 @@ const App = () => {
   };
 
   return (
-    <>
-      <ThemeProvider theme={darkTheme}>
-        <CssBaseline />
+    <ThemeProvider theme={darkTheme}>
+      <CssBaseline />
+      
         <Header theme={theme} changeTheme={changeTheme} />
-        {/* <Home /> */}
-        {/* <Welcome/>  */}
-        {/* <Login/> */}
-        {/* <Picture/> */}
-        <Instructions/>
+        <Routes>
+          <Route path="/" element={<Welcome />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/picture" element={<Picture />} />
+          <Route path="/instructions" element={<Instructions />} />
+          <Route path="/home" element={<Home />} />
+        </Routes>
         <Footer/>
-      </ThemeProvider>
-    </>
+      
+    </ThemeProvider>
   );
 };
 
