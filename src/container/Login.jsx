@@ -83,9 +83,7 @@ const Login = () => {
     }
 
     try {
-      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${
-        import.meta.env.VITE_API_PORT
-      }/auth/login`;
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}/auth/login`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -102,7 +100,7 @@ const Login = () => {
       console.log("Backend response:", responseData);
 
       if (responseData.success) {
-        alert(responseData.message);
+        //alert(responseData.message);
         localStorage.setItem("token", responseData.token);
         navigate("/picture");
       } else {

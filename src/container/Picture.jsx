@@ -1,113 +1,81 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Webcam from 'react-webcam';
-import Button from '@mui/material/Button';
+import { useRef, useEffect } from 'react';
+import { Container, Typography, Button } from '@mui/material'; 
 import * as faceapi from 'face-api.js';
-import { useTheme } from '@mui/material/styles';
+import '../Style/Picture.css';
 
-const Picture = () => {
-  const webcamRef = useRef(null);
-  const [imgSrc, setImgSrc] = useState(null);
-  const [isFaceDetected, setIsFaceDetected] = useState(false);
-  const [numFaces, setNumFaces] = useState(0);
-  const theme = useTheme();
-  const navigate = useNavigate();
+function Picture() {
+  const videoRef = useRef();
+  const canvasRef = useRef();
 
   useEffect(() => {
-    const loadModels = async () => {
-      try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-        console.log("Models loaded successfully.");
-        setInterval(detectFace, 100);
-      } catch (error) {
-        console.error("Error loading models: ", error);
-      }
-    };
-
+    startVideo();
     loadModels();
   }, []);
 
-  const detectFace = async () => {
-    try {
-      if (webcamRef.current && webcamRef.current.video.readyState === 4) {
-        const video = webcamRef.current.video;
-        console.log("Video element:", video);
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({
-          inputSize: 224,
-          scoreThreshold: 0.5
-        }));
-        setIsFaceDetected(detections.length > 0);
-        setNumFaces(detections.length);
-        console.log("Face detected:", detections.length);
+  const startVideo = () => {
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((currentStream) => {
+        videoRef.current.srcObject = currentStream;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  const loadModels = async () => {
+    await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+    faceMyDetect();
+  }
+
+  const faceMyDetect = () => {
+    setInterval(async () => {
+      const detections = await faceapi.detectAllFaces(videoRef.current,
+        new faceapi.TinyFaceDetectorOptions());
+
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+      if (detections.length > 0) {
+        // Face detected
+        ctx.fillStyle = 'green';
+        ctx.font = '24px Arial';
+        ctx.fillText('Face Detected', 50, 50);
+      } else {
+        // No face detected
+        ctx.fillStyle = 'red';
+        ctx.font = '24px Arial';
+        ctx.fillText('No Face Detected', 50, 50);
       }
-    } catch (error) {
-      console.error("Error detecting faces:", error);
-    }
-  };
 
-  const videoConstraints = {
-    width: 300,
-    height: 300,
-    facingMode: 'user',
-  };
+    }, 1000);
+  }
 
-  const capture = useCallback(() => {
-    const imageSrc = webcamRef.current.getScreenshot();
-    setImgSrc(imageSrc);
-  }, [webcamRef]);
+  const handleCapture = () => {
+    // Logic to capture the current image or frame
+    // You can implement this based on your requirements
+  }
 
-  const handleSubmit = () => {
-    if (!imgSrc) {
-      alert('Please capture an image first');
-      return;
-    }
-
-    const link = document.createElement('a');
-    link.href = imgSrc;
-    link.download = 'candidate_picture.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    navigate('/instructions');
-  };
+  const handleSaveAndNext = () => {
+    // Logic to save the captured image or proceed to the next step
+    // You can implement this based on your requirements
+  }
 
   return (
-    <div className={`flex flex-col items-center justify-center h-full ${theme.palette.mode === 'dark' ? 'bg-black' : 'bg-white'}`} style={{ paddingTop: '4rem', paddingBottom: '4rem' }}>
-      <div className="mb-4 text-center">
-        <p className="text-lg font-semibold">Number of Faces Detected: {numFaces}</p>
+    <Container className="myapp" maxWidth="xl">
+      <div className="appvideo">
+        <video crossOrigin="anonymous" ref={videoRef} autoPlay />
       </div>
-      <div className={`flex items-center justify-center mb-4 ${isFaceDetected ? 'border-blue-500 ring-4 ring-blue-500' : 'border-gray-300'}`}>
-        <div className="rounded-full overflow-hidden border-2">
-          <Webcam
-            audio={false}
-            ref={webcamRef}
-            screenshotFormat="image/png"
-            width={videoConstraints.width}
-            videoConstraints={videoConstraints}
-            className="rounded-full"
-          />
-        </div>
-      </div>
-      <div className="mb-4">
-        <Button variant="contained" color="primary" onClick={capture}>
-          Capture
-        </Button>
-      </div>
-      {imgSrc && (
-        <div className="mb-4">
-          <div className="rounded-full overflow-hidden border-2 border-gray-300">
-            <img src={imgSrc} alt="Candidate" className="rounded-full" />
-          </div>
-        </div>
-      )}
-      <div>
-        <Button variant="contained" color="secondary" onClick={handleSubmit}>
-          Submit
-        </Button>
-      </div>
-    </div>
+      <canvas ref={canvasRef} width="940" height="650" className="appcanvas" />
+
+      {/* Material-UI Buttons */}
+      <Button variant="contained" color="primary" onClick={handleCapture}>
+        Capture
+      </Button>
+      <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
+        Save and Next
+      </Button>
+    </Container>
   );
-};
+}
 
 export default Picture;
