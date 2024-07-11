@@ -64,10 +64,42 @@ const Login = () => {
   const [candidateId, setCandidateId] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Add login logic here
-    navigate('/picture');
+  const handleLogin = async () => {
+    if (!candidateId || !password) {
+      alert('Required fields missing!');
+      return;
+    }
+  
+    try {
+      const apiUrl = `${process.env.REACT_APP_API_BASE_URL}:${process.env.REACT_APP_API_PORT}/auth/login`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          candidate_id: parseInt(candidateId),
+          password: password,
+        }),
+      });
+  
+      const responseData = await response.json();
+  
+      console.log('Backend response:', responseData);
+  
+      if (responseData.success) {
+        alert(responseData.message);
+        localStorage.setItem('token', responseData.token);
+        navigate('/picture');
+      } else {
+        alert(responseData.message);
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      alert('Something went wrong. Please try again later.');
+    }
   };
+  
 
   return (
     <Box 
