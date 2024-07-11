@@ -1,113 +1,118 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Webcam from 'react-webcam';
-import Button from '@mui/material/Button';
+import { useRef, useEffect, useState } from 'react';
+import { Container, Button, Snackbar, Alert } from '@mui/material';
 import * as faceapi from 'face-api.js';
-import { useTheme } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
+import '../Style/Picture.css';
 
-const Picture = () => {
-  const webcamRef = useRef(null);
-  const [imgSrc, setImgSrc] = useState(null);
-  const [isFaceDetected, setIsFaceDetected] = useState(false);
-  const [numFaces, setNumFaces] = useState(0);
-  const theme = useTheme();
+function Picture() {
+  const videoRef = useRef();
+  const canvasRef = useRef();
+  const [faceDetected, setFaceDetected] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadModels = async () => {
-      try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-        console.log("Models loaded successfully.");
-        setInterval(detectFace, 100);
-      } catch (error) {
-        console.error("Error loading models: ", error);
-      }
-    };
-
+    startVideo();
     loadModels();
   }, []);
 
-  const detectFace = async () => {
-    try {
-      if (webcamRef.current && webcamRef.current.video.readyState === 4) {
-        const video = webcamRef.current.video;
-        console.log("Video element:", video);
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({
-          inputSize: 224,
-          scoreThreshold: 0.5
-        }));
-        setIsFaceDetected(detections.length > 0);
-        setNumFaces(detections.length);
-        console.log("Face detected:", detections.length);
+  const startVideo = () => {
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((currentStream) => {
+        videoRef.current.srcObject = currentStream;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const loadModels = async () => {
+    await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+    faceMyDetect();
+  };
+
+  const faceMyDetect = () => {
+    setInterval(async () => {
+      const detections = await faceapi.detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions());
+
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        if (detections.length > 0) {
+          // Face detected
+          ctx.fillStyle = 'green';
+          ctx.font = '24px Arial';
+          ctx.fillText('Face Detected', 50, 50);
+          setFaceDetected(true);
+        } else {
+          // No face detected
+          ctx.fillStyle = 'red';
+          ctx.font = '24px Arial';
+          ctx.fillText('No Face Detected', 50, 50);
+          setFaceDetected(false);
+        }
       }
-    } catch (error) {
-      console.error("Error detecting faces:", error);
+    }, 1000);
+  };
+
+  const handleCapture = () => {
+    if (faceDetected) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
+      const dataURL = canvas.toDataURL('image/png');
+      setCapturedImage(dataURL);
+    } else {
+      setOpen(true);
     }
   };
 
-  const videoConstraints = {
-    width: 300,
-    height: 300,
-    facingMode: 'user',
+  const handleSaveAndNext = () => {
+    if (capturedImage) {
+      const link = document.createElement('a');
+      link.href = capturedImage;
+      link.download = 'captured.png';
+      link.click();
+      navigate('/instructions');
+    }
   };
 
-  const capture = useCallback(() => {
-    const imageSrc = webcamRef.current.getScreenshot();
-    setImgSrc(imageSrc);
-  }, [webcamRef]);
-
-  const handleSubmit = () => {
-    if (!imgSrc) {
-      alert('Please capture an image first');
-      return;
-    }
-
-    const link = document.createElement('a');
-    link.href = imgSrc;
-    link.download = 'candidate_picture.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    navigate('/instructions');
+  const handleClose = () => {
+    setOpen(false);
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center h-full ${theme.palette.mode === 'dark' ? 'bg-black' : 'bg-white'}`} style={{ paddingTop: '4rem', paddingBottom: '4rem' }}>
-      <div className="mb-4 text-center">
-        <p className="text-lg font-semibold">Number of Faces Detected: {numFaces}</p>
+    <Container className="myapp" maxWidth="xl">
+      <div className="appvideo">
+        {capturedImage ? (
+          <img src={capturedImage} alt="Captured" style={{ maxWidth: '100%' }} />
+        ) : (
+          <>
+            <video crossOrigin="anonymous" ref={videoRef} autoPlay />
+            <canvas ref={canvasRef} width="940" height="650" className="appcanvas" />
+          </>
+        )}
       </div>
-      <div className={`flex items-center justify-center mb-4 ${isFaceDetected ? 'border-blue-500 ring-4 ring-blue-500' : 'border-gray-300'}`}>
-        <div className="rounded-full overflow-hidden border-2">
-          <Webcam
-            audio={false}
-            ref={webcamRef}
-            screenshotFormat="image/png"
-            width={videoConstraints.width}
-            videoConstraints={videoConstraints}
-            className="rounded-full"
-          />
-        </div>
-      </div>
-      <div className="mb-4">
-        <Button variant="contained" color="primary" onClick={capture}>
+
+      <div className="button-container flex justify-around items-center w-full mt-4 px-[6rem]" >
+        <Button variant="contained" color="primary" onClick={handleCapture}>
           Capture
         </Button>
-      </div>
-      {imgSrc && (
-        <div className="mb-4">
-          <div className="rounded-full overflow-hidden border-2 border-gray-300">
-            <img src={imgSrc} alt="Candidate" className="rounded-full" />
-          </div>
-        </div>
-      )}
-      <div>
-        <Button variant="contained" color="secondary" onClick={handleSubmit}>
-          Submit
+        <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
+          Save and Next
         </Button>
       </div>
-    </div>
+
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="warning" sx={{ width: '100%' }}>
+          No face detected. Try again.
+        </Alert>
+      </Snackbar>
+    </Container>
   );
-};
+}
 
 export default Picture;

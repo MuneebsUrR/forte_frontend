@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button, TextField, Container, Typography, Box } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import logo from '../assets/fast.png';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button, TextField, Container, Typography, Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import logo from "../assets/fast.png";
 
 const Logo = () => (
   <Box className="flex justify-center mb-4">
@@ -16,7 +16,13 @@ const Header = () => (
   </Typography>
 );
 
-const LoginForm = ({ candidateId, setCandidateId, password, setPassword, handleLogin }) => {
+const LoginForm = ({
+  candidateId,
+  setCandidateId,
+  password,
+  setPassword,
+  handleLogin,
+}) => {
   const theme = useTheme();
 
   return (
@@ -30,7 +36,10 @@ const LoginForm = ({ candidateId, setCandidateId, password, setPassword, handleL
         variant="outlined"
         InputLabelProps={{ style: { color: theme.palette.text.primary } }}
         InputProps={{
-          style: { backgroundColor: theme.palette.background.default, color: theme.palette.text.primary },
+          style: {
+            backgroundColor: theme.palette.background.default,
+            color: theme.palette.text.primary,
+          },
         }}
       />
       <TextField
@@ -43,7 +52,10 @@ const LoginForm = ({ candidateId, setCandidateId, password, setPassword, handleL
         variant="outlined"
         InputLabelProps={{ style: { color: theme.palette.text.primary } }}
         InputProps={{
-          style: { backgroundColor: theme.palette.background.default, color: theme.palette.text.primary },
+          style: {
+            backgroundColor: theme.palette.background.default,
+            color: theme.palette.text.primary,
+          },
         }}
       />
       <Button
@@ -61,31 +73,66 @@ const LoginForm = ({ candidateId, setCandidateId, password, setPassword, handleL
 const Login = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const [candidateId, setCandidateId] = useState('');
-  const [password, setPassword] = useState('');
+  const [candidateId, setCandidateId] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    // Add login logic here
-    navigate('/picture');
+  const handleLogin = async () => {
+    if (!candidateId || !password) {
+      alert("Required fields missing!");
+      return;
+    }
+
+    try {
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}/auth/login`;
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          candidate_id: parseInt(candidateId),
+          password: password,
+        }),
+      });
+
+      const responseData = await response.json();
+
+      console.log("Backend response:", responseData);
+
+      if (responseData.success) {
+        //alert(responseData.message);
+        localStorage.setItem("token", responseData.token);
+        navigate("/picture");
+      } else {
+        alert(responseData.message);
+      }
+    } catch (error) {
+      console.error("Error during login:", error);
+      alert("Something went wrong. Please try again later.");
+    }
   };
 
   return (
-    <Box 
-      className="flex items-center justify-center h-screen" 
+    <Box
+      className="flex items-center justify-center h-screen"
       style={{ backgroundColor: theme.palette.background.default }}
     >
-      <Container 
-        className="p-4 rounded-lg shadow-md" 
-        style={{ backgroundColor: theme.palette.background.paper, maxWidth: '400px', padding: '2rem' }}
+      <Container
+        className="p-4 rounded-lg shadow-md"
+        style={{
+          backgroundColor: theme.palette.background.paper,
+          maxWidth: "400px",
+          padding: "2rem",
+        }}
       >
         <Logo />
         <Header />
-        <LoginForm 
-          candidateId={candidateId} 
-          setCandidateId={setCandidateId} 
-          password={password} 
-          setPassword={setPassword} 
-          handleLogin={handleLogin} 
+        <LoginForm
+          candidateId={candidateId}
+          setCandidateId={setCandidateId}
+          password={password}
+          setPassword={setPassword}
+          handleLogin={handleLogin}
         />
       </Container>
     </Box>
