@@ -1,11 +1,16 @@
-import { useRef, useEffect } from 'react';
-import { Container, Typography, Button } from '@mui/material'; 
+import { useRef, useEffect, useState } from 'react';
+import { Container, Button, Snackbar, Alert } from '@mui/material';
 import * as faceapi from 'face-api.js';
+import { useNavigate } from 'react-router-dom';
 import '../Style/Picture.css';
 
 function Picture() {
   const videoRef = useRef();
   const canvasRef = useRef();
+  const [faceDetected, setFaceDetected] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     startVideo();
@@ -20,60 +25,92 @@ function Picture() {
       .catch((err) => {
         console.log(err);
       });
-  }
+  };
 
   const loadModels = async () => {
-    await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+    await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
     faceMyDetect();
-  }
+  };
 
   const faceMyDetect = () => {
     setInterval(async () => {
-      const detections = await faceapi.detectAllFaces(videoRef.current,
-        new faceapi.TinyFaceDetectorOptions());
+      const detections = await faceapi.detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions());
 
-      const ctx = canvasRef.current.getContext('2d');
-      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-      if (detections.length > 0) {
-        // Face detected
-        ctx.fillStyle = 'green';
-        ctx.font = '24px Arial';
-        ctx.fillText('Face Detected', 50, 50);
-      } else {
-        // No face detected
-        ctx.fillStyle = 'red';
-        ctx.font = '24px Arial';
-        ctx.fillText('No Face Detected', 50, 50);
+        if (detections.length > 0) {
+          // Face detected
+          ctx.fillStyle = 'green';
+          ctx.font = '24px Arial';
+          ctx.fillText('Face Detected', 50, 50);
+          setFaceDetected(true);
+        } else {
+          // No face detected
+          ctx.fillStyle = 'red';
+          ctx.font = '24px Arial';
+          ctx.fillText('No Face Detected', 50, 50);
+          setFaceDetected(false);
+        }
       }
-
     }, 1000);
-  }
+  };
 
   const handleCapture = () => {
-    // Logic to capture the current image or frame
-    // You can implement this based on your requirements
-  }
+    if (faceDetected) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
+      const dataURL = canvas.toDataURL('image/png');
+      setCapturedImage(dataURL);
+    } else {
+      setOpen(true);
+    }
+  };
 
   const handleSaveAndNext = () => {
-    // Logic to save the captured image or proceed to the next step
-    // You can implement this based on your requirements
-  }
+    if (capturedImage) {
+      const link = document.createElement('a');
+      link.href = capturedImage;
+      link.download = 'captured.png';
+      link.click();
+      navigate('/instructions');
+    }
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   return (
     <Container className="myapp" maxWidth="xl">
       <div className="appvideo">
-        <video crossOrigin="anonymous" ref={videoRef} autoPlay />
+        {capturedImage ? (
+          <img src={capturedImage} alt="Captured" style={{ maxWidth: '100%' }} />
+        ) : (
+          <>
+            <video crossOrigin="anonymous" ref={videoRef} autoPlay />
+            <canvas ref={canvasRef} width="940" height="650" className="appcanvas" />
+          </>
+        )}
       </div>
-      <canvas ref={canvasRef} width="940" height="650" className="appcanvas" />
 
-      {/* Material-UI Buttons */}
-      <Button variant="contained" color="primary" onClick={handleCapture}>
-        Capture
-      </Button>
-      <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
-        Save and Next
-      </Button>
+      <div className="button-container flex justify-around items-center w-full mt-4 px-[6rem]" >
+        <Button variant="contained" color="primary" onClick={handleCapture}>
+          Capture
+        </Button>
+        <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
+          Save and Next
+        </Button>
+      </div>
+
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="warning" sx={{ width: '100%' }}>
+          No face detected. Try again.
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

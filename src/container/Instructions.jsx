@@ -98,7 +98,7 @@ const Instructions = () => {
   };
 
   return (
-    <Container 
+    <Container className='px-4'
       maxWidth="md" 
       sx={{
         p: 8,
