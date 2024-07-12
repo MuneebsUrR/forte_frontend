@@ -1,8 +1,10 @@
+// Your Login component
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, TextField, Container, Typography, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import logo from "../assets/fast.png";
+import useLoginStore from "../zustand/loginStore"; 
 
 const Logo = () => (
   <Box className="flex justify-center mb-4">
@@ -75,6 +77,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [candidateId, setCandidateId] = useState("");
   const [password, setPassword] = useState("");
+  const setLoginResult = useLoginStore((state) => state.setLoginResult);
 
   const handleLogin = async () => {
     if (!candidateId || !password) {
@@ -100,8 +103,8 @@ const Login = () => {
       console.log("Backend response:", responseData);
 
       if (responseData.success) {
-        //alert(responseData.message);
         localStorage.setItem("token", responseData.token);
+        setLoginResult(responseData); // Store login result in Zustand store
         navigate("/picture");
       } else {
         alert(responseData.message);
