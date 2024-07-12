@@ -41,16 +41,8 @@ function Picture() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
         if (detections.length > 0) {
-          // Face detected
-          ctx.fillStyle = 'green';
-          ctx.font = '24px Arial';
-          ctx.fillText('Face Detected', 50, 50);
           setFaceDetected(true);
         } else {
-          // No face detected
-          ctx.fillStyle = 'red';
-          ctx.font = '24px Arial';
-          ctx.fillText('No Face Detected', 50, 50);
           setFaceDetected(false);
         }
       }
@@ -70,6 +62,11 @@ function Picture() {
     }
   };
 
+  const handleRetake = () => {
+    setCapturedImage(null); // Clear captured image
+    startVideo(); // Restart video feed
+  };
+
   const handleSaveAndNext = () => {
     if (capturedImage) {
       const link = document.createElement('a');
@@ -86,21 +83,28 @@ function Picture() {
 
   return (
     <Container className="myapp" maxWidth="xl">
-      <div className="appvideo">
+      <div className={`appvideo ${faceDetected ? 'face-detected' : 'no-face-detected'}`}>
         {capturedImage ? (
           <img src={capturedImage} alt="Captured" style={{ maxWidth: '100%' }} />
         ) : (
           <>
             <video crossOrigin="anonymous" ref={videoRef} autoPlay />
-            <canvas ref={canvasRef} width="940" height="650" className="appcanvas" />
+            <canvas ref={canvasRef} className="appcanvas" />
           </>
         )}
       </div>
 
-      <div className="button-container flex justify-around items-center w-full mt-4 px-[6rem]" >
-        <Button variant="contained" color="primary" onClick={handleCapture}>
-          Capture
-        </Button>
+      <div className="button-container flex justify-around items-center w-full mt-4 px-[6rem]">
+        {!capturedImage && (
+          <Button variant="contained" color="primary" onClick={handleCapture}>
+            Capture
+          </Button>
+        )}
+        {capturedImage && (
+          <Button variant="contained" color="primary" onClick={handleRetake}>
+            Retake
+          </Button>
+        )}
         <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
           Save and Next
         </Button>

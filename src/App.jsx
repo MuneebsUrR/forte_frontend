@@ -10,6 +10,7 @@ import Picture from "./container/Picture";
 import Instructions from "./container/Instructions";
 import Welcome from "./container/Welcome";
 
+
 const App = () => {
   const [theme, setTheme] = useState("light");
 
