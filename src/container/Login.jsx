@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button, TextField, Container, Typography, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import logo from "../assets/fast.png";
-import useLoginStore from "../zustand/loginStore"; 
+import useLoginStore from "../Hooks/loginStore"; 
 
 const Logo = () => (
   <Box className="flex justify-center mb-4">
