@@ -30,7 +30,7 @@ const Home = () => {
 
   const fetchQuestionsData = async () => {
     try {
-      const response = await fetch('http://localhost:7000/questions/getquestions');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}/questions/getquestions`);
       const data = await response.json();
       setDataQuestions(data.questions);
       console.log("questions", dataQuestions)
@@ -43,7 +43,7 @@ const Home = () => {
 
   const fetchChoicesData = async () => {
     try {
-      const response = await fetch('http://localhost:7000/questions/getchoices');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}/questions/getchoices`);
       const data = await response.json();
       setQuestionChoices(data.choices);
       console.log("choices", questionChoices)

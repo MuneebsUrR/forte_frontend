@@ -4,6 +4,7 @@ import { Button, TextField, Container, Typography, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import logo from "../assets/fast.png";
 import useLoginStore from "../Hooks/loginStore"; 
+import Cookies from 'js-cookie';
 
 const Logo = () => (
   <Box className="flex justify-center mb-4">
@@ -102,7 +103,8 @@ const Login = () => {
       // console.log("Backend response:", responseData);
       // console.log("Zustand ", useLoginStore.getState().loginResult);
       if (responseData.success) {
-        localStorage.setItem("token", responseData.token);
+        //localStorage.setItem("token", responseData.token);
+        Cookies.set('token', responseData.token, { expires: 1 });
         setLoginResult(responseData); 
         navigate("/picture");
       } else {
