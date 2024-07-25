@@ -1,4 +1,3 @@
-// Your Login component
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, TextField, Container, Typography, Box } from "@mui/material";
@@ -100,11 +99,11 @@ const Login = () => {
 
       const responseData = await response.json();
 
-      console.log("Backend response:", responseData);
-
+      // console.log("Backend response:", responseData);
+      // console.log("Zustand ", useLoginStore.getState().loginResult);
       if (responseData.success) {
         localStorage.setItem("token", responseData.token);
-        setLoginResult(responseData); // Store login result in Zustand store
+        setLoginResult(responseData); 
         navigate("/picture");
       } else {
         alert(responseData.message);

@@ -3,6 +3,7 @@ import { Container, Button, Snackbar, Alert } from '@mui/material';
 import * as faceapi from 'face-api.js';
 import { useNavigate } from 'react-router-dom';
 import '../Style/Picture.css';
+import useLoginStore from "../Hooks/loginStore";
 
 function Picture() {
   const videoRef = useRef();
@@ -11,6 +12,9 @@ function Picture() {
   const [capturedImage, setCapturedImage] = useState(null);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const loginResult = useLoginStore((state) => state.loginResult);
+
+
 
   useEffect(() => {
     startVideo();
@@ -93,7 +97,13 @@ function Picture() {
               <canvas ref={canvasRef} className="appcanvas " />
             </>
           )}
+          <div className="login-details">
+          <p><strong>CANDIDATE_ID:</strong> {loginResult.user.CANDIDATE_ID}</p>
+          <p><strong>FIRST_NAME:</strong> {loginResult.user.FIRST_NAME}</p>
+          <p><strong>FATHER_NAME:</strong> {loginResult.user.FATHER_NAME}</p>
         </div>
+      </div>
+
 
         <div className="button-container flex justify-around items-center w-full mt-1 px-[6rem]">
           {!capturedImage && (
@@ -120,5 +130,4 @@ function Picture() {
     </div>
   );
 }
-
 export default Picture;
