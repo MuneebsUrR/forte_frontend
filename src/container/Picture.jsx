@@ -82,40 +82,42 @@ function Picture() {
   };
 
   return (
-    <Container className="myapp" maxWidth="xl">
-      <div className={`appvideo ${faceDetected ? 'face-detected' : 'no-face-detected'}`}>
-        {capturedImage ? (
-          <img src={capturedImage} alt="Captured" style={{ maxWidth: '100%' }} />
-        ) : (
-          <>
-            <video crossOrigin="anonymous" ref={videoRef} autoPlay />
-            <canvas ref={canvasRef} className="appcanvas" />
-          </>
-        )}
-      </div>
+    <div className='h-[80vh] flex items-center justify-center '>
+      <Container className="myapp" maxWidth="xl">
+        <div className={`appvideo ${faceDetected ? 'face-detected' : 'no-face-detected'}`}>
+          {capturedImage ? (
+            <img src={capturedImage} alt="Captured" style={{ maxWidth: '100%' }} />
+          ) : (
+            <>
+              <video crossOrigin="anonymous" ref={videoRef} autoPlay />
+              <canvas ref={canvasRef} className="appcanvas " />
+            </>
+          )}
+        </div>
 
-      <div className="button-container flex justify-around items-center w-full mt-4 px-[6rem]">
-        {!capturedImage && (
-          <Button variant="contained" color="primary" onClick={handleCapture}>
-            Capture
+        <div className="button-container flex justify-around items-center w-full mt-1 px-[6rem]">
+          {!capturedImage && (
+            <Button variant="contained" color="primary" onClick={handleCapture}>
+              Capture
+            </Button>
+          )}
+          {capturedImage && (
+            <Button variant="contained" color="primary" onClick={handleRetake}>
+              Retake
+            </Button>
+          )}
+          <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
+            Save and Next
           </Button>
-        )}
-        {capturedImage && (
-          <Button variant="contained" color="primary" onClick={handleRetake}>
-            Retake
-          </Button>
-        )}
-        <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
-          Save and Next
-        </Button>
-      </div>
+        </div>
 
-      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="warning" sx={{ width: '100%' }}>
-          No face detected. Try again.
-        </Alert>
-      </Snackbar>
-    </Container>
+        <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+          <Alert onClose={handleClose} severity="warning" sx={{ width: '100%' }}>
+            No face detected. Try again.
+          </Alert>
+        </Snackbar>
+      </Container>
+    </div>
   );
 }
 

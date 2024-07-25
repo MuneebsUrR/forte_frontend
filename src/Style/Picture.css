@@ -1,13 +1,15 @@
 .appvideo {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
-  border: 5px solid transparent;
+  align-items: center;
+  /* border: 5px solid transparent; */
   transition: border-color 0.1s;
+ 
+  border: 5px solid red;
 }
 
 .appvideo.face-detected {
-  border-color: blue;
+  border-color: rgb(130, 245, 16);
 }
 
 .appvideo.no-face-detected {
@@ -16,13 +18,17 @@
 
 .appcanvas {
   position: absolute;
-  top: 100px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+ 
+  
 }
 
 .myapp {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  height: 90vh;
+  justify-content: center;
+  
 }

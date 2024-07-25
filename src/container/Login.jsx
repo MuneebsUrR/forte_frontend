@@ -117,7 +117,7 @@ const Login = () => {
 
   return (
     <Box
-      className="flex items-center justify-center h-screen"
+      className="flex items-center justify-center h-[80vh]"
       style={{ backgroundColor: theme.palette.background.default }}
     >
       <Container
