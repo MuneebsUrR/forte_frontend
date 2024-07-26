@@ -4,6 +4,7 @@ import Questions from '../components/Questions';
 import Review from '../components/Review';
 import Cookies from 'universal-cookie';
 
+
 const cookies = new Cookies();
 
 const Home = () => {
@@ -16,6 +17,7 @@ const Home = () => {
   const [filterChoices, setFilterChoices] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
 
+ 
     // Retrieve the token from cookies
     const token = cookies.get('token');
 
