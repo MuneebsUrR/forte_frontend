@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Info from '../components/Info';
 import Questions from '../components/Questions';
 import Review from '../components/Review';
-import Login from './Login';
+import Cookies from 'universal-cookie';
+
+const cookies = new Cookies();
 
 const Home = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -13,6 +15,10 @@ const Home = () => {
 
   const [filterChoices, setFilterChoices] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
+
+    // Retrieve the token from cookies
+    const token = cookies.get('token');
+
 
   const handleOptionChange = (e) => {
     setSelectedOptions({

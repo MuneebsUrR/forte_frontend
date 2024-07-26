@@ -4,7 +4,9 @@ import { Button, TextField, Container, Typography, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import logo from "../assets/fast.png";
 import useLoginStore from "../Hooks/loginStore"; 
-import Cookies from 'js-cookie';
+import Cookies from 'universal-cookie';
+
+const cookies = new Cookies();
 
 const Logo = () => (
   <Box className="flex justify-center mb-4">
@@ -100,11 +102,11 @@ const Login = () => {
 
       const responseData = await response.json();
 
-      // console.log("Backend response:", responseData);
-      // console.log("Zustand ", useLoginStore.getState().loginResult);
       if (responseData.success) {
+        // Store token in cookies
         //localStorage.setItem("token", responseData.token);
-        Cookies.set('token', responseData.token, { expires: 1 });
+        cookies.set('token', responseData.token, { path: '/' });
+        
         setLoginResult(responseData); 
         navigate("/picture");
       } else {
