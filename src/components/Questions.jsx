@@ -2,6 +2,7 @@ import React from 'react';
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import { Button, Radio, Typography } from '@mui/material';
 
+
 const Questions = ({
     dataQuestions,
     questionChoices,

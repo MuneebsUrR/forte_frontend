@@ -5,6 +5,7 @@ import Review from '../components/Review';
 import Cookies from 'universal-cookie';
 
 
+
 const cookies = new Cookies();
 
 const Home = () => {
