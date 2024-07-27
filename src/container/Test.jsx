@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import Cookies from 'universal-cookie';
+import usePaperStore from '../Hooks/paperstore';
 
 const DataDisplayComponent = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { setData, setLoading, setError, getData, getLoading, getError } = usePaperStore();
+  const [currentSubjectIndex, setCurrentSubjectIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const cookies = new Cookies();
         const token = cookies.get('token');
         const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}`;
-        
+
         const response = await fetch(`${apiUrl}/paper/getPaper`, {
           method: 'GET',
           headers: {
@@ -39,35 +41,63 @@ const DataDisplayComponent = () => {
     };
 
     fetchData();
-  }, []);
+  }, [setData, setLoading, setError]);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (getLoading()) return <p>Loading...</p>;
+  if (getError()) return <p>Error: {getError()}</p>;
+
+  const handleNext = () => {
+    const data = getData();
+    const currentSubject = data[currentSubjectIndex];
+    if (currentQuestionIndex < currentSubject.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else if (currentSubjectIndex < data.length - 1) {
+      setCurrentSubjectIndex(currentSubjectIndex + 1);
+      setCurrentQuestionIndex(0);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    } else if (currentSubjectIndex > 0) {
+      const data = getData();
+      setCurrentSubjectIndex(currentSubjectIndex - 1);
+      setCurrentQuestionIndex(data[currentSubjectIndex - 1].questions.length - 1);
+    }
+  };
+
+  const data = getData();
+  const currentSubject = data ? data[currentSubjectIndex] : null;
+  const currentQuestion = currentSubject ? currentSubject.questions[currentQuestionIndex] : null;
 
   return (
     <div>
-      {data && data.map((subject, subjectIndex) => (
-        <div key={subjectIndex}>
-          <h2>Subject Name: {subject.subject_name}</h2>
-          <p>Number of Questions: {subject.noq}</p>
-          <p>Weightage: {subject.wtg}</p>
-          <p>Time Allocated: {subject.time_allocated}</p>
-          <p>Negative Marking: {subject.isNegativeMarking}</p>
-          
-          {subject.questions.map((question, questionIndex) => (
-            <div key={questionIndex}>
-              <h3>Question ID: {questionIndex + 1} - {question.QUESTION_TEXT}</h3>
+      {currentSubject && (
+        <>
+          <h2>Subject Name: {currentSubject.subject_name}</h2>
+          <p>Number of Questions: {currentSubject.noq}</p>
+          <p>Weightage: {currentSubject.wtg}</p>
+          <p>Time Allocated: {currentSubject.time_allocated}</p>
+          <p>Negative Marking: {currentSubject.isNegativeMarking ? 'Yes' : 'No'}</p>
+
+          {currentQuestion && (
+            <div>
+              <h3>Question {currentQuestionIndex + 1}: {currentQuestion.QUESTION_TEXT}</h3>
               <ul>
-                {question.answer_choices.map((choice, choiceIndex) => (
-                  <li key={choiceIndex}>
-                    Choice ID: {choice.ANS_CHOICE_ID} - {choice.ANS_CHOICE_TEXT}
-                  </li>
+                {currentQuestion.answer_choices.map((choice, index) => (
+                  <li key={index}>{choice.ANS_CHOICE_TEXT}</li>
                 ))}
               </ul>
             </div>
-          ))}
-        </div>
-      ))}
+          )}
+
+          <div>
+            <button onClick={handleBack} disabled={currentSubjectIndex === 0 && currentQuestionIndex === 0}>Back</button>
+            <button onClick={handleNext} disabled={currentSubjectIndex === data.length - 1 && currentQuestionIndex === currentSubject.questions.length - 1}>Next</button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

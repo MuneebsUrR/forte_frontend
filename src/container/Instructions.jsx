@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Checkbox, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useTheme } from '@mui/material';
+import usePaperStore from '../Hooks/paperstore';
+import Cookies from 'universal-cookie';
 
 const Header = () => (
   <Box textAlign="center" my={8}>
@@ -37,57 +39,84 @@ const GeneralInstructions = () => (
   </Box>
 );
 
-const TestSummary = () => (
-  <TableContainer component={Paper} my={4}>
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>Section</TableCell>
-          <TableCell>Time Allocated (in Minutes)</TableCell>
-          <TableCell>No. Of Questions</TableCell>
-          <TableCell>Weightage %</TableCell>
-          <TableCell>Negative Marking</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        <TableRow>
-          <TableCell>Mathematics</TableCell>
-          <TableCell>5</TableCell>
-          <TableCell>5</TableCell>
-          <TableCell>25</TableCell>
-          <TableCell>No</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>IQ and Analytical</TableCell>
-          <TableCell>5</TableCell>
-          <TableCell>5</TableCell>
-          <TableCell>25</TableCell>
-          <TableCell>No</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Science</TableCell>
-          <TableCell>5</TableCell>
-          <TableCell>5</TableCell>
-          <TableCell>25</TableCell>
-          <TableCell>No</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>English</TableCell>
-          <TableCell>5</TableCell>
-          <TableCell>5</TableCell>
-          <TableCell>25</TableCell>
-          <TableCell>No</TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
-  </TableContainer>
-);
+const TestSummary = () => {
+  const { data } = usePaperStore();
+
+  if (!data || data.length === 0) {
+    return <Typography>No data available</Typography>;
+  }
+
+  return (
+    <TableContainer component={Paper} my={4}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Section</TableCell>
+            <TableCell>Time Allocated (in Minutes)</TableCell>
+            <TableCell>No. Of Questions</TableCell>
+            <TableCell>Weightage %</TableCell>
+            <TableCell>Negative Marking</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {data.map((item) => (
+            <TableRow key={item.sa_id}>
+              <TableCell>{item.subject_name}</TableCell>
+              <TableCell>{item.time_allocated}</TableCell>
+              <TableCell>{item.noq}</TableCell>
+              <TableCell>{item.wtg}</TableCell>
+              <TableCell>{item.isNegativeMarking ? 'Yes' : 'No'}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+};
 
 const Instructions = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const [checked, setChecked] = useState(false);
   const navigate = useNavigate();
+  const { setData, setLoading, setError } = usePaperStore();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const cookies = new Cookies();
+        const token = cookies.get('token');
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}`;
+
+        const response = await fetch(`${apiUrl}/paper/getPaper`, {
+          method: 'GET',
+          headers: {
+            'apikey': token
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+          console.log('Paper Data:', result.data);
+          setData(result.data);
+        } else {
+          throw new Error('API response indicates failure.');
+        }
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [setData, setLoading, setError]);
 
   const handleCheckboxChange = (event) => {
     setChecked(event.target.checked);
