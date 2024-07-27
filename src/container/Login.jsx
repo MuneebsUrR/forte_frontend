@@ -83,7 +83,7 @@ const Login = () => {
     }
 
     try {
-      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}/auth/login`;
+      const apiUrl = `http://localhost:7000/auth/login`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
