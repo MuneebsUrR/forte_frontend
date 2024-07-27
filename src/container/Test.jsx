@@ -75,7 +75,7 @@ const DataDisplayComponent = () => {
     <div>
       {currentSubject && (
         <>
-          <h2>Subject Name: {currentSubject.subject_name}</h2>
+          <h2>Section Name: {currentSubject.subject_name}</h2>
           <p>Number of Questions: {currentSubject.noq}</p>
           <p>Weightage: {currentSubject.wtg}</p>
           <p>Time Allocated: {currentSubject.time_allocated}</p>

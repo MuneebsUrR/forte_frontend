@@ -2,12 +2,10 @@ import React from 'react';
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import { Button, Radio, Typography } from '@mui/material';
 
-
 const Questions = ({
     dataQuestions,
     questionChoices,
     questionIndex,
-    filterChoices,
     selectedOptions,
     handleOptionChange,
     handleReset,
@@ -23,21 +21,24 @@ const Questions = ({
                 </Typography>
                 <MathJax>
                     <Typography className='ml-4 mr-4 mb-4'>
-                        {dataQuestions && dataQuestions[questionIndex].QUESTION_TEXT}
+                        {dataQuestions && dataQuestions[questionIndex]?.QUESTION_TEXT}
                     </Typography>
                 </MathJax>
-                {filterChoices && filterChoices.map((choice, index) => {
+                {questionChoices && questionChoices.map((choice, index) => {
                     const choiceId = `choice-${index}`;
                     return (
-                        <div key={index}>
+                        <label key={index} htmlFor={choiceId} className="flex items-center cursor-pointer mb-2">
                             <Radio
                                 name="options"
                                 id={choiceId}
                                 checked={selectedOptions[questionIndex] === choiceId}
                                 onChange={handleOptionChange}
+                                value={choiceId}
                             />
-                            {choice.ANS_CHOICE_TEXT}
-                        </div>
+                            <Typography className='ml-2'>
+                                {choice.ANS_CHOICE_TEXT}
+                            </Typography>
+                        </label>
                     );
                 })}
                 <div className='flex flex-col justify-start items-start gap-4 m-4'>
