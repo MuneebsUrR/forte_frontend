@@ -229,7 +229,7 @@ const DataDisplayComponent = () => {
             noq={currentSubject.noq}
             wtg={currentSubject.wtg}
             time_allocated={currentSubject.time_allocated}
-            isNegativeMarking={currentSubject.isNegativeMarking}
+            isNegativeMarking={!!currentSubject.isNegativeMarking}
           />
 
           {currentQuestion && (
