@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Checkbox, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useTheme } from '@mui/material';
 import usePaperStore from '../Hooks/paperstore';
+import useLoginStore from "../Hooks/loginStore";
 import Cookies from 'universal-cookie';
 
 const Header = () => (
@@ -10,15 +11,16 @@ const Header = () => (
   </Box>
 );
 
-const CandidateInfo = () => (
+const CandidateInfo = ({ loginResult }) => (
   <Box my={4}>
     <Typography variant="h6">Candidate Information:</Typography>
-    <Typography>Candidate ID:</Typography>
+    <Typography><strong>Candidate ID:</strong> {loginResult?.user?.CANDIDATE_ID || 'N/A'}</Typography>
     <Typography>Test Center:</Typography>
     <Typography>Test Session:</Typography>
     <Typography>Programme:</Typography>
   </Box>
 );
+
 
 const GeneralInstructions = () => (
   <Box my={4}>
@@ -79,7 +81,8 @@ const Instructions = () => {
   const isDarkMode = theme.palette.mode === 'dark';
   const [checked, setChecked] = useState(false);
   const navigate = useNavigate();
-  const { setData, setLoading, setError } = usePaperStore();
+  const { setData, setLoading } = usePaperStore();
+  const loginResult = useLoginStore((state) => state.loginResult);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,20 +106,19 @@ const Instructions = () => {
         const result = await response.json();
 
         if (result.success) {
-          //console.log('Paper Data:', result.data);
           setData(result.data);
         } else {
           throw new Error('API response indicates failure.');
         }
       } catch (error) {
-        setError(error.message);
+        console.error('Fetch error:', error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [setData, setLoading, setError]);
+  }, [setData, setLoading]);
 
   const handleCheckboxChange = (event) => {
     setChecked(event.target.checked);
@@ -137,7 +139,7 @@ const Instructions = () => {
         color: isDarkMode ? 'text.primary' : 'text.secondary',
       }}
     >
-      <CandidateInfo />
+      <CandidateInfo loginResult={loginResult} />
       <Header />
       <GeneralInstructions />
       <TestSummary />
@@ -157,5 +159,6 @@ const Instructions = () => {
     </Container>
   );
 };
+
 
 export default Instructions;

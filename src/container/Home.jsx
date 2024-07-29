@@ -10,15 +10,13 @@ const Home = () => {
   const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
 
   // Access Zustand store
-  const { getData, getLoading, getError } = usePaperStore(state => ({
+  const { getData, getLoading } = usePaperStore(state => ({
     getData: state.getData,
     getLoading: state.getLoading,
-    getError: state.getError,
   }));
 
   const data = getData();
   const loading = getLoading();
-  const error = getError();
 
   useEffect(() => {
     if (data && data.length > 0) {
@@ -77,7 +75,6 @@ const Home = () => {
   return (
     <div>
       {loading && <p>Loading...</p>}
-      {error && <p>Error: {error}</p>}
       {currentSubject && (
         <>
           <Info 
