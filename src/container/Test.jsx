@@ -63,6 +63,14 @@ const Question = ({
   handleNext,
   handleReviewClick
 }) => {
+  const [rendered, setRendered] = useState(false);
+
+  useEffect(() => {
+    setRendered(true);
+  }, []);
+
+  if (!rendered) return null;
+
   return (
     <MathJaxContext>
       <div className="flex-[3] w-full h-[100%] overflow-auto">
@@ -142,6 +150,7 @@ const DataDisplayComponent = () => {
   const [currentSubjectIndex, setCurrentSubjectIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState([]);
+  const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -179,16 +188,27 @@ const DataDisplayComponent = () => {
     fetchData();
   }, [setData, setLoading, setError]);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
-
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const currentSubject = data[currentSubjectIndex];
+      if (currentSubject) {
+        const isLastQuestion = currentQuestionIndex === currentSubject.questions.length - 1;
+  
+        // Set the message visibility based on whether it's the last question
+        setShowLastQuestionMessage(isLastQuestion);
+      }
+    }
+  }, [currentQuestionIndex, currentSubjectIndex, data]);
+  
   const handleNext = () => {
     const currentSubject = data[currentSubjectIndex];
-    if (currentQuestionIndex < currentSubject.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else if (currentSubjectIndex < data.length - 1) {
-      setCurrentSubjectIndex(currentSubjectIndex + 1);
-      setCurrentQuestionIndex(0);
+    if (currentSubject) {
+      if (currentQuestionIndex < currentSubject.questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      } else if (currentSubjectIndex < data.length - 1) {
+        setCurrentSubjectIndex(currentSubjectIndex + 1);
+        setCurrentQuestionIndex(0);
+      }
     }
   };
 
@@ -196,8 +216,12 @@ const DataDisplayComponent = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else if (currentSubjectIndex > 0) {
-      setCurrentSubjectIndex(currentSubjectIndex - 1);
-      setCurrentQuestionIndex(data[currentSubjectIndex - 1].questions.length - 1);
+      const previousSubjectIndex = currentSubjectIndex - 1;
+      const previousSubject = data[previousSubjectIndex];
+      if (previousSubject) {
+        setCurrentSubjectIndex(previousSubjectIndex);
+        setCurrentQuestionIndex(previousSubject.questions.length - 1);
+      }
     }
   };
 
@@ -233,16 +257,23 @@ const DataDisplayComponent = () => {
           />
 
           {currentQuestion && (
-            <Question
-              question={currentQuestion}
-              questionIndex={currentQuestionIndex}
-              selectedOptions={selectedOptions}
-              handleOptionChange={handleOptionChange}
-              handleReset={handleReset}
-              handleBack={handleBack}
-              handleNext={handleNext}
-              handleReviewClick={handleReviewClick}
-            />
+            <>
+              <Question
+                question={currentQuestion}
+                questionIndex={currentQuestionIndex}
+                selectedOptions={selectedOptions}
+                handleOptionChange={handleOptionChange}
+                handleReset={handleReset}
+                handleBack={handleBack}
+                handleNext={handleNext}
+                handleReviewClick={handleReviewClick}
+              />
+              {showLastQuestionMessage && (
+                <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 text-center">
+                  This is the last question of this section. If you have time, you can review your answers or start the next section.
+                </div>
+              )}
+            </>
           )}
         </>
       )}
