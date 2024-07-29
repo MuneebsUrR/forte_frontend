@@ -18,7 +18,7 @@ const Info = ({ subject_name, noq, wtg, time_allocated, isNegativeMarking }) => 
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [time_allocated]);
 
   const minutes = Math.floor(timeRemaining / 60);
   const seconds = timeRemaining % 60;

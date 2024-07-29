@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import Info from '../components/Info';
-import Questions from '../components/Questions';
-import Review from '../components/Review';
-import usePaperStore from '../Hooks/paperstore'; // Adjust the path as needed
+import usePaperStore from '../Hooks/paperstore'; 
+import Info from '../components/Info'; 
+import Question from '../components/Questions'; 
 
 const Home = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
-  const [questionStatus, setQuestionStatus] = useState({});
-  const [questionIndex, setQuestionIndex] = useState(0);
+  const [currentSubjectIndex, setCurrentSubjectIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
 
   // Access Zustand store
   const { getData, getLoading, getError } = usePaperStore(state => ({
@@ -17,107 +17,98 @@ const Home = () => {
   }));
 
   const data = getData();
-
-  // Extract the current subject and related questions
-  const currentSubject = data?.[0] || {};
-  const dataQuestions = currentSubject?.questions || []; // Assuming questions is an array
-  const questionChoices = dataQuestions[questionIndex]?.answer_choices || []; // Assuming each question has answer_choices
+  const loading = getLoading();
+  const error = getError();
 
   useEffect(() => {
-    console.log('Data from Zustand:', data);
-  
-    if (getLoading()) {
-      console.log('Loading...');
+    if (data && data.length > 0) {
+      const currentSubject = data[currentSubjectIndex];
+      if (currentSubject) {
+        const isLastQuestion = currentQuestionIndex === currentSubject.questions.length - 1;
+        setShowLastQuestionMessage(isLastQuestion);
+      }
     }
+  }, [currentQuestionIndex, currentSubjectIndex, data]);
 
-    if (getError()) {
-      console.error('Error:', getError());
+  const handleNext = () => {
+    const currentSubject = data[currentSubjectIndex];
+    if (currentSubject) {
+      if (currentQuestionIndex < currentSubject.questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      } else if (currentSubjectIndex < data.length - 1) {
+        setCurrentSubjectIndex(currentSubjectIndex + 1);
+        setCurrentQuestionIndex(0);
+      }
     }
-  }, [data, getLoading, getError]);
+  };
+
+  const handleBack = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    } else if (currentSubjectIndex > 0) {
+      const previousSubjectIndex = currentSubjectIndex - 1;
+      const previousSubject = data[previousSubjectIndex];
+      if (previousSubject) {
+        setCurrentSubjectIndex(previousSubjectIndex);
+        setCurrentQuestionIndex(previousSubject.questions.length - 1);
+      }
+    }
+  };
 
   const handleOptionChange = (e) => {
-    setSelectedOptions({
-      ...selectedOptions,
-      [questionIndex]: e.target.id,
-    });
+    const newSelectedOptions = { ...selectedOptions };
+    newSelectedOptions[currentQuestionIndex] = e.target.value;
+    setSelectedOptions(newSelectedOptions);
   };
 
   const handleReset = () => {
-    setSelectedOptions({
-      ...selectedOptions,
-      [questionIndex]: null,
-    });
-  };
-
-  const handleBackClick = () => {
-    setQuestionIndex(questionIndex - 1);
-  };
-
-  const handleNextClick = () => {
-    if (questionStatus[questionIndex] !== 'reviewed') {
-      const status = selectedOptions[questionIndex] ? 'completed' : 'skipped';
-      setQuestionStatus({
-        ...questionStatus,
-        [questionIndex]: status,
-      });
-    }
-    setQuestionIndex(questionIndex + 1);
+    const newSelectedOptions = { ...selectedOptions };
+    newSelectedOptions[currentQuestionIndex] = '';
+    setSelectedOptions(newSelectedOptions);
   };
 
   const handleReviewClick = () => {
-    if (selectedOptions[questionIndex]) {
-      setQuestionStatus({
-        ...questionStatus,
-        [questionIndex]: 'reviewed',
-      });
-    }
+    console.log('Review clicked');
   };
 
-  const categorizeQuestions = (status) => {
-    return Object.keys(questionStatus).filter(key => questionStatus[key] === status);
-  };
-
-  const totalQuestions = 0; // Update as needed
-  const completedQuestions = categorizeQuestions('completed');
-  const skippedQuestions = categorizeQuestions('skipped');
-  const reviewedQuestions = categorizeQuestions('reviewed');
+  const currentSubject = data ? data[currentSubjectIndex] : null;
+  const currentQuestion = currentSubject ? currentSubject.questions[currentQuestionIndex] : null;
 
   return (
-    <main className='h-[80vh] flex flex-col'>
-      <div className=''>
-        <Info 
-          subject_name={currentSubject.subject_name}
-          noq={currentSubject.noq}
-          wtg={currentSubject.wtg}
-          time_allocated={currentSubject.time_allocated}
-          isNegativeMarking={currentSubject.isNegativeMarking === 1} // Convert to boolean if needed
-        />
-      </div>
-      <div className='flex sm:flex-row flex-col h-[90%] mt-3 px-4'>
-        <Questions
-          dataQuestions={dataQuestions}
-          questionChoices={questionChoices}
-          questionIndex={questionIndex}
-          selectedOptions={selectedOptions}
-          handleOptionChange={handleOptionChange}
-          handleReset={handleReset}
-          handleBackClick={handleBackClick}
-          handleNextClick={handleNextClick}
-          handleReviewClick={handleReviewClick}
-          className='overflow-auto'
-        />
-        <Review
-          totalQuestions={totalQuestions}
-          questionStatus={questionStatus}
-          questionIndex={questionIndex}
-          completedQuestions={completedQuestions}
-          skippedQuestions={skippedQuestions}
-          reviewedQuestions={reviewedQuestions}
-          setQuestionIndex={setQuestionIndex}
-          className='overflow-auto'
-        />
-      </div>
-    </main>
+    <div>
+      {loading && <p>Loading...</p>}
+      {error && <p>Error: {error}</p>}
+      {currentSubject && (
+        <>
+          <Info 
+            subject_name={currentSubject.subject_name}
+            noq={currentSubject.noq}
+            wtg={currentSubject.wtg}
+            time_allocated={currentSubject.time_allocated}
+            isNegativeMarking={!!currentSubject.isNegativeMarking}
+          />
+          {currentQuestion && (
+            <>
+              <Question
+                question={currentQuestion}
+                questionIndex={currentQuestionIndex}
+                selectedOptions={selectedOptions}
+                handleOptionChange={handleOptionChange}
+                handleReset={handleReset}
+                handleBack={handleBack}
+                handleNext={handleNext}
+                handleReviewClick={handleReviewClick}
+              />
+              {showLastQuestionMessage && (
+                <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 text-center">
+                  This is the last question of this section. If you have time, you can review your answers or start the next section.
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
+    </div>
   );
 };
 

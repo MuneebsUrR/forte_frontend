@@ -103,7 +103,7 @@ const Instructions = () => {
         const result = await response.json();
 
         if (result.success) {
-          console.log('Paper Data:', result.data);
+          //console.log('Paper Data:', result.data);
           setData(result.data);
         } else {
           throw new Error('API response indicates failure.');
