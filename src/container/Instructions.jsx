@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Checkbox, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useTheme } from '@mui/material';
-import usePaperStore from '../Hooks/paperstore';
 import useLoginStore from "../Hooks/loginStore";
 import Cookies from 'universal-cookie';
 
@@ -40,10 +39,7 @@ const GeneralInstructions = () => (
     </Box>
   </Box>
 );
-
-const TestSummary = () => {
-  const { data } = usePaperStore();
-
+const TestSummary = ({ data }) => {
   if (!data || data.length === 0) {
     return <Typography>No data available</Typography>;
   }
@@ -53,21 +49,17 @@ const TestSummary = () => {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Section</TableCell>
-            <TableCell>Time Allocated (in Minutes)</TableCell>
+            <TableCell>Subject</TableCell>
             <TableCell>No. Of Questions</TableCell>
             <TableCell>Weightage %</TableCell>
-            <TableCell>Negative Marking</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {data.map((item) => (
-            <TableRow key={item.sa_id}>
-              <TableCell>{item.subject_name}</TableCell>
-              <TableCell>{item.time_allocated}</TableCell>
-              <TableCell>{item.noq}</TableCell>
-              <TableCell>{item.wtg}</TableCell>
-              <TableCell>{item.isNegativeMarking ? 'Yes' : 'No'}</TableCell>
+            <TableRow key={item.SUBJECT_ID}>
+              <TableCell>{item.NODE_NAME}</TableCell>
+              <TableCell>{item.NOQ}</TableCell>
+              <TableCell>{item.WTG}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -80,19 +72,18 @@ const Instructions = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const [checked, setChecked] = useState(false);
+  const [data, setData] = useState([]);
   const navigate = useNavigate();
-  const { setData, setLoading } = usePaperStore();
   const loginResult = useLoginStore((state) => state.loginResult);
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
         const cookies = new Cookies();
         const token = cookies.get('token');
-        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}`;
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}/paper/getPaper`;
 
-        const response = await fetch(`${apiUrl}/paper/getPaper`, {
+        const response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
             'apikey': token
@@ -104,21 +95,21 @@ const Instructions = () => {
         }
 
         const result = await response.json();
+        console.log('API Response:', result); 
 
-        if (result.success) {
-          setData(result.data);
+        // Check if the message is 'success'
+        if (result.message === 'success') {
+          setData(result.data); 
         } else {
           throw new Error('API response indicates failure.');
         }
       } catch (error) {
         console.error('Fetch error:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
-  }, [setData, setLoading]);
+  }, []);
 
   const handleCheckboxChange = (event) => {
     setChecked(event.target.checked);
@@ -142,7 +133,7 @@ const Instructions = () => {
       <CandidateInfo loginResult={loginResult} />
       <Header />
       <GeneralInstructions />
-      <TestSummary />
+      <TestSummary data={data} />
       <FormControlLabel
         control={<Checkbox checked={checked} onChange={handleCheckboxChange} name="checkedA" />}
         label="I have carefully read the instructions and I agree to follow them"
@@ -159,6 +150,5 @@ const Instructions = () => {
     </Container>
   );
 };
-
 
 export default Instructions;
