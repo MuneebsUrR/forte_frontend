@@ -74,14 +74,13 @@ const Home = () => {
 
   return (
     <div>
-      {loading && <p>Loading...</p>}
       {currentSubject && (
         <>
           <Info 
-            subject_name={currentSubject.subject_name}
-            noq={currentSubject.noq}
-            wtg={currentSubject.wtg}
-            time_allocated={currentSubject.time_allocated}
+            subject_name={currentSubject.NODE_NAME}  
+            noq={currentSubject.NOQ}                 
+            wtg={currentSubject.WTG}                
+            time_allocated={currentSubject.TIME_ALLOCATED}  
             isNegativeMarking={!!currentSubject.isNegativeMarking}
           />
           {currentQuestion && (
