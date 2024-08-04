@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Checkbox, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useTheme } from '@mui/material';
 import useLoginStore from "../Hooks/loginStore";
 import Cookies from 'universal-cookie';
+import usePaperStore from '../Hooks/paperstore'; 
 
 const Header = () => (
   <Box textAlign="center" my={8}>
@@ -19,7 +20,6 @@ const CandidateInfo = ({ loginResult }) => (
     <Typography>Programme:</Typography>
   </Box>
 );
-
 
 const GeneralInstructions = () => (
   <Box my={4}>
@@ -39,6 +39,7 @@ const GeneralInstructions = () => (
     </Box>
   </Box>
 );
+
 const TestSummary = ({ data }) => {
   if (!data || data.length === 0) {
     return <Typography>No data available</Typography>;
@@ -72,9 +73,9 @@ const Instructions = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const [checked, setChecked] = useState(false);
-  const [data, setData] = useState([]);
   const navigate = useNavigate();
   const loginResult = useLoginStore((state) => state.loginResult);
+  const setPaperData = usePaperStore((state) => state.setData); // Get setData function from Zustand
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,11 +96,11 @@ const Instructions = () => {
         }
 
         const result = await response.json();
-        console.log('API Response:', result); 
+        console.log('API Response:', result);
 
         // Check if the message is 'success'
         if (result.message === 'success') {
-          setData(result.data); 
+          setPaperData(result.data); // Store data in Zustand
         } else {
           throw new Error('API response indicates failure.');
         }
@@ -109,7 +110,7 @@ const Instructions = () => {
     };
 
     fetchData();
-  }, []);
+  }, [setPaperData]);
 
   const handleCheckboxChange = (event) => {
     setChecked(event.target.checked);
@@ -133,7 +134,7 @@ const Instructions = () => {
       <CandidateInfo loginResult={loginResult} />
       <Header />
       <GeneralInstructions />
-      <TestSummary data={data} />
+      <TestSummary data={usePaperStore((state) => state.getData())} />
       <FormControlLabel
         control={<Checkbox checked={checked} onChange={handleCheckboxChange} name="checkedA" />}
         label="I have carefully read the instructions and I agree to follow them"
