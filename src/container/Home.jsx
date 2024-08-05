@@ -30,19 +30,21 @@ const Home = () => {
       }
     }
   }, [currentQuestionIndex, currentSubjectIndex, data]);
+ 
   const handleNext = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
       const newQuestionStatuses = { ...questionStatuses };
-  
-      // Determine the question status
+      const currentQuestionStatus = newQuestionStatuses[currentQuestionIndex];
+      
+      // Determine if the question should be marked as completed, skipped, or reviewed
       if (selectedOptions[currentQuestionIndex] !== undefined) {
         // If option was reset (i.e., empty string), consider it as skipped
         if (selectedOptions[currentQuestionIndex] === '') {
           newQuestionStatuses[currentQuestionIndex] = 'skipped';
         } else if (reviewedQuestions[currentQuestionIndex]) {
-          // Preserve 'reviewed' status if already reviewed
-          newQuestionStatuses[currentQuestionIndex] = 'reviewed';
+          // Preserve 'reviewed' status if already reviewed and option selected
+          newQuestionStatuses[currentQuestionIndex] = 'completed';
         } else {
           newQuestionStatuses[currentQuestionIndex] = 'completed';
         }
@@ -50,6 +52,8 @@ const Home = () => {
         // If no option was selected, mark as skipped
         newQuestionStatuses[currentQuestionIndex] = 'skipped';
       }
+      
+      // Update the state with new statuses
       setQuestionStatuses(newQuestionStatuses);
   
       // Move to the next question or subject
@@ -65,7 +69,7 @@ const Home = () => {
       }
     }
   };
-  
+    
 
   const handleBack = () => {
     if (currentQuestionIndex > 0) {
