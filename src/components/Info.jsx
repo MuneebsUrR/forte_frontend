@@ -7,6 +7,11 @@ const Info = ({ subject_name, noq, wtg, time_allocated, isNegativeMarking }) => 
   const [timeRemaining, setTimeRemaining] = useState(time_allocated * 60);
 
   useEffect(() => {
+    // Reset the timer when the `time_allocated` changes
+    setTimeRemaining(time_allocated * 60);
+  }, [time_allocated]);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setTimeRemaining((prevTime) => {
         if (prevTime <= 0) {

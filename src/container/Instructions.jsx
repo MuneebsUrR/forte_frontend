@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Checkbox, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useTheme } from '@mui/material';
-import usePaperStore from '../Hooks/paperstore';
+import useLoginStore from "../Hooks/loginStore";
 import Cookies from 'universal-cookie';
+import usePaperStore from '../Hooks/paperstore'; 
 
 const Header = () => (
   <Box textAlign="center" my={8}>
@@ -10,10 +11,10 @@ const Header = () => (
   </Box>
 );
 
-const CandidateInfo = () => (
+const CandidateInfo = ({ loginResult }) => (
   <Box my={4}>
     <Typography variant="h6">Candidate Information:</Typography>
-    <Typography>Candidate ID:</Typography>
+    <Typography><strong>Candidate ID:</strong> {loginResult?.user?.CANDIDATE_ID || 'N/A'}</Typography>
     <Typography>Test Center:</Typography>
     <Typography>Test Session:</Typography>
     <Typography>Programme:</Typography>
@@ -39,9 +40,7 @@ const GeneralInstructions = () => (
   </Box>
 );
 
-const TestSummary = () => {
-  const { data } = usePaperStore();
-
+const TestSummary = ({ data }) => {
   if (!data || data.length === 0) {
     return <Typography>No data available</Typography>;
   }
@@ -51,21 +50,17 @@ const TestSummary = () => {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Section</TableCell>
-            <TableCell>Time Allocated (in Minutes)</TableCell>
+            <TableCell>Subject</TableCell>
             <TableCell>No. Of Questions</TableCell>
             <TableCell>Weightage %</TableCell>
-            <TableCell>Negative Marking</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {data.map((item) => (
-            <TableRow key={item.sa_id}>
-              <TableCell>{item.subject_name}</TableCell>
-              <TableCell>{item.time_allocated}</TableCell>
-              <TableCell>{item.noq}</TableCell>
-              <TableCell>{item.wtg}</TableCell>
-              <TableCell>{item.isNegativeMarking ? 'Yes' : 'No'}</TableCell>
+            <TableRow key={item.SUBJECT_ID}>
+              <TableCell>{item.NODE_NAME}</TableCell>
+              <TableCell>{item.NOQ}</TableCell>
+              <TableCell>{item.WTG}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -79,18 +74,17 @@ const Instructions = () => {
   const isDarkMode = theme.palette.mode === 'dark';
   const [checked, setChecked] = useState(false);
   const navigate = useNavigate();
-  const { setData, setLoading, setError } = usePaperStore();
- 
+  const loginResult = useLoginStore((state) => state.loginResult);
+  const setPaperData = usePaperStore((state) => state.setData); // Get setData function from Zustand
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
         const cookies = new Cookies();
         const token = cookies.get('token');
-        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}`;
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}/paper/getPaper`;
 
-        const response = await fetch(`${apiUrl}/paper/getPaper`, {
+        const response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
             'apikey': token
@@ -102,22 +96,21 @@ const Instructions = () => {
         }
 
         const result = await response.json();
+        console.log('API Response:', result);
 
-        if (result.success) {
-          console.log('Paper Data:', result.data);
-          setData(result.data);
+        // Check if the message is 'success'
+        if (result.message === 'success') {
+          setPaperData(result.data); // Store data in Zustand
         } else {
           throw new Error('API response indicates failure.');
         }
       } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
+        console.error('Fetch error:', error);
       }
     };
 
     fetchData();
-  }, [setData, setLoading, setError]);
+  }, [setPaperData]);
 
   const handleCheckboxChange = (event) => {
     setChecked(event.target.checked);
@@ -138,10 +131,10 @@ const Instructions = () => {
         color: isDarkMode ? 'text.primary' : 'text.secondary',
       }}
     >
-      <CandidateInfo />
+      <CandidateInfo loginResult={loginResult} />
       <Header />
       <GeneralInstructions />
-      <TestSummary />
+      <TestSummary data={usePaperStore((state) => state.getData())} />
       <FormControlLabel
         control={<Checkbox checked={checked} onChange={handleCheckboxChange} name="checkedA" />}
         label="I have carefully read the instructions and I agree to follow them"
