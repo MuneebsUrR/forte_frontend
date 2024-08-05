@@ -7,19 +7,19 @@ import Sidebar from '../components/Sidebar';
 const Home = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const [questionStatuses, setQuestionStatuses] = useState({});
-  const [reviewedQuestions, setReviewedQuestions] = useState({}); // State for reviewed questions
+  const [reviewedQuestions, setReviewedQuestions] = useState({}); 
   const [currentSubjectIndex, setCurrentSubjectIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
 
   // Access Zustand store
-  const { getData, getLoading } = usePaperStore(state => ({
+  const { getData} = usePaperStore(state => ({
     getData: state.getData,
     getLoading: state.getLoading,
   }));
 
   const data = getData();
-  const loading = getLoading();
+
 
   useEffect(() => {
     if (data && data.length > 0) {
@@ -30,18 +30,18 @@ const Home = () => {
       }
     }
   }, [currentQuestionIndex, currentSubjectIndex, data]);
-
   const handleNext = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
       const newQuestionStatuses = { ...questionStatuses };
   
-      // Determine if the question should be marked as completed, skipped, or reviewed
+      // Determine the question status
       if (selectedOptions[currentQuestionIndex] !== undefined) {
         // If option was reset (i.e., empty string), consider it as skipped
         if (selectedOptions[currentQuestionIndex] === '') {
           newQuestionStatuses[currentQuestionIndex] = 'skipped';
         } else if (reviewedQuestions[currentQuestionIndex]) {
+          // Preserve 'reviewed' status if already reviewed
           newQuestionStatuses[currentQuestionIndex] = 'reviewed';
         } else {
           newQuestionStatuses[currentQuestionIndex] = 'completed';
@@ -52,6 +52,7 @@ const Home = () => {
       }
       setQuestionStatuses(newQuestionStatuses);
   
+      // Move to the next question or subject
       if (currentQuestionIndex < currentSubject.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else if (currentSubjectIndex < data.length - 1) {
@@ -92,17 +93,36 @@ const Home = () => {
   };
 
   const handleReviewClick = () => {
+    // Check if an option is selected for the current question
+    if (selectedOptions[currentQuestionIndex] === undefined || selectedOptions[currentQuestionIndex] === '') {
+      // Do nothing if no option is selected
+      return;
+    }
+  
+    // Mark the question as reviewed
     const newReviewedQuestions = { ...reviewedQuestions };
     newReviewedQuestions[currentQuestionIndex] = true;
     setReviewedQuestions(newReviewedQuestions);
-
-    // Update status to reviewed if not already set to completed
+  
     const newQuestionStatuses = { ...questionStatuses };
     if (!newQuestionStatuses[currentQuestionIndex]) {
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
     }
     setQuestionStatuses(newQuestionStatuses);
+  
+    // Move to the next question
+    if (currentQuestionIndex < data[currentSubjectIndex].questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else if (currentSubjectIndex < data.length - 1) {
+      setCurrentSubjectIndex(currentSubjectIndex + 1);
+      setCurrentQuestionIndex(0);
+  
+      // Reset question statuses and reviewed questions for new section
+      setQuestionStatuses({});
+      setReviewedQuestions({});
+    }
   };
+  
 
   const handleJumpToQuestion = (questionIndex) => {
     setCurrentQuestionIndex(questionIndex);
