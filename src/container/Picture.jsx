@@ -3,6 +3,7 @@ import { Container, Button, Snackbar, Alert } from '@mui/material';
 import * as faceapi from 'face-api.js';
 import { useNavigate } from 'react-router-dom';
 import '../Style/Picture.css';
+import useLoginStore from "../Hooks/loginStore";
 
 function Picture() {
   const videoRef = useRef();
@@ -11,6 +12,9 @@ function Picture() {
   const [capturedImage, setCapturedImage] = useState(null);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const loginResult = useLoginStore((state) => state.loginResult);
+
+
 
   useEffect(() => {
     startVideo();
@@ -41,16 +45,8 @@ function Picture() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
         if (detections.length > 0) {
-          // Face detected
-          ctx.fillStyle = 'green';
-          ctx.font = '24px Arial';
-          ctx.fillText('Face Detected', 50, 50);
           setFaceDetected(true);
         } else {
-          // No face detected
-          ctx.fillStyle = 'red';
-          ctx.font = '24px Arial';
-          ctx.fillText('No Face Detected', 50, 50);
           setFaceDetected(false);
         }
       }
@@ -70,6 +66,11 @@ function Picture() {
     }
   };
 
+  const handleRetake = () => {
+    setCapturedImage(null); // Clear captured image
+    startVideo(); // Restart video feed
+  };
+
   const handleSaveAndNext = () => {
     if (capturedImage) {
       const link = document.createElement('a');
@@ -85,34 +86,48 @@ function Picture() {
   };
 
   return (
-    <Container className="myapp" maxWidth="xl">
-      <div className="appvideo">
-        {capturedImage ? (
-          <img src={capturedImage} alt="Captured" style={{ maxWidth: '100%' }} />
-        ) : (
-          <>
-            <video crossOrigin="anonymous" ref={videoRef} autoPlay />
-            <canvas ref={canvasRef} width="940" height="650" className="appcanvas" />
-          </>
-        )}
+    <div className='h-[80vh] flex items-center justify-center '>
+      <Container className="myapp" maxWidth="xl">
+        <div className={`appvideo ${faceDetected ? 'face-detected' : 'no-face-detected'}`}>
+          {capturedImage ? (
+            <img src={capturedImage} alt="Captured" style={{ maxWidth: '100%' }} />
+          ) : (
+            <>
+              <video crossOrigin="anonymous" ref={videoRef} autoPlay />
+              <canvas ref={canvasRef} className="appcanvas " />
+            </>
+          )}
+          <div className="login-details">
+          <p><strong>CANDIDATE_ID:</strong> {loginResult.user.CANDIDATE_ID}</p>
+          <p><strong>FIRST_NAME:</strong> {loginResult.user.FIRST_NAME}</p>
+          <p><strong>FATHER_NAME:</strong> {loginResult.user.FATHER_NAME}</p>
+        </div>
       </div>
 
-      <div className="button-container flex justify-around items-center w-full mt-4 px-[6rem]" >
-        <Button variant="contained" color="primary" onClick={handleCapture}>
-          Capture
-        </Button>
-        <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
-          Save and Next
-        </Button>
-      </div>
 
-      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="warning" sx={{ width: '100%' }}>
-          No face detected. Try again.
-        </Alert>
-      </Snackbar>
-    </Container>
+        <div className="button-container flex justify-around items-center w-full mt-1 px-[6rem]">
+          {!capturedImage && (
+            <Button variant="contained" color="primary" onClick={handleCapture}>
+              Capture
+            </Button>
+          )}
+          {capturedImage && (
+            <Button variant="contained" color="primary" onClick={handleRetake}>
+              Retake
+            </Button>
+          )}
+          <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
+            Save and Next
+          </Button>
+        </div>
+
+        <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+          <Alert onClose={handleClose} severity="warning" sx={{ width: '100%' }}>
+            No face detected. Try again.
+          </Alert>
+        </Snackbar>
+      </Container>
+    </div>
   );
 }
-
 export default Picture;

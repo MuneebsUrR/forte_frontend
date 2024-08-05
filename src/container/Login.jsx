@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Button, TextField, Container, Typography, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import logo from "../assets/fast.png";
+import useLoginStore from "../Hooks/loginStore"; 
+import Cookies from 'universal-cookie';
+
+const cookies = new Cookies();
 
 const Logo = () => (
   <Box className="flex justify-center mb-4">
@@ -75,6 +79,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [candidateId, setCandidateId] = useState("");
   const [password, setPassword] = useState("");
+  const setLoginResult = useLoginStore((state) => state.setLoginResult);
 
   const handleLogin = async () => {
     if (!candidateId || !password) {
@@ -97,12 +102,14 @@ const Login = () => {
 
       const responseData = await response.json();
 
-      console.log("Backend response:", responseData);
-
       if (responseData.success) {
-        //alert(responseData.message);
-        localStorage.setItem("token", responseData.token);
-        navigate("/picture");
+        // Store token in cookies
+        //localStorage.setItem("token", responseData.token);
+        cookies.set('token', responseData.token, { path: '/' });
+        
+        setLoginResult(responseData); 
+        //navigate("/picture");
+         navigate("/test");
       } else {
         alert(responseData.message);
       }
@@ -114,7 +121,7 @@ const Login = () => {
 
   return (
     <Box
-      className="flex items-center justify-center h-screen"
+      className="flex items-center justify-center h-[80vh]"
       style={{ backgroundColor: theme.palette.background.default }}
     >
       <Container

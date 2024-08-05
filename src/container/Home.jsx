@@ -2,17 +2,38 @@ import React, { useState, useEffect } from 'react';
 import Info from '../components/Info';
 import Questions from '../components/Questions';
 import Review from '../components/Review';
-import Login from './Login';
+import usePaperStore from '../Hooks/paperstore'; // Adjust the path as needed
 
 const Home = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const [questionStatus, setQuestionStatus] = useState({});
- 
-  const [dataQuestions, setDataQuestions] = useState(null);
-  const [questionChoices, setQuestionChoices] = useState(null);
-
-  const [filterChoices, setFilterChoices] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
+
+  // Access Zustand store
+  const { getData, getLoading, getError } = usePaperStore(state => ({
+    getData: state.getData,
+    getLoading: state.getLoading,
+    getError: state.getError,
+  }));
+
+  const data = getData();
+
+  // Extract the current subject and related questions
+  const currentSubject = data?.[0] || {};
+  const dataQuestions = currentSubject?.questions || []; // Assuming questions is an array
+  const questionChoices = dataQuestions[questionIndex]?.answer_choices || []; // Assuming each question has answer_choices
+
+  useEffect(() => {
+    console.log('Data from Zustand:', data);
+  
+    if (getLoading()) {
+      console.log('Loading...');
+    }
+
+    if (getError()) {
+      console.error('Error:', getError());
+    }
+  }, [data, getLoading, getError]);
 
   const handleOptionChange = (e) => {
     setSelectedOptions({
@@ -27,46 +48,6 @@ const Home = () => {
       [questionIndex]: null,
     });
   };
-
-  const fetchQuestionsData = async () => {
-    try {
-      const response = await fetch('http://localhost:7000/questions/getquestions');
-      const data = await response.json();
-      setDataQuestions(data.questions);
-      console.log("questions", dataQuestions)
-     
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-
-  };
-
-  const fetchChoicesData = async () => {
-    try {
-      const response = await fetch('http://localhost:7000/questions/getchoices');
-      const data = await response.json();
-      setQuestionChoices(data.choices);
-      console.log("choices", questionChoices)
-    } catch (error) {
-
-      console.error('Error fetching data:', error);
-    }
-  }
-
-  useEffect(() => {
-    fetchQuestionsData();
-    fetchChoicesData();
-  }, []);
-
-  useEffect(() => {
-    if (questionChoices && dataQuestions) {
-      const filteredChoices = questionChoices.filter((choice) => {
-        return choice.QUESTION_ID === dataQuestions[questionIndex].QUESTION_ID;
-      });
-      setFilterChoices(filteredChoices);
-      console.log("filteredChoices", filterChoices)
-    }
-  }, [questionIndex, dataQuestions, questionChoices]);
 
   const handleBackClick = () => {
     setQuestionIndex(questionIndex - 1);
@@ -96,8 +77,7 @@ const Home = () => {
     return Object.keys(questionStatus).filter(key => questionStatus[key] === status);
   };
 
-  const totalQuestions = 0;
- 
+  const totalQuestions = 0; // Update as needed
   const completedQuestions = categorizeQuestions('completed');
   const skippedQuestions = categorizeQuestions('skipped');
   const reviewedQuestions = categorizeQuestions('reviewed');
@@ -105,14 +85,19 @@ const Home = () => {
   return (
     <main className='h-[80vh] flex flex-col'>
       <div className=''>
-        <Info />
+        <Info 
+          subject_name={currentSubject.subject_name}
+          noq={currentSubject.noq}
+          wtg={currentSubject.wtg}
+          time_allocated={currentSubject.time_allocated}
+          isNegativeMarking={currentSubject.isNegativeMarking === 1} // Convert to boolean if needed
+        />
       </div>
       <div className='flex sm:flex-row flex-col h-[90%] mt-3 px-4'>
         <Questions
           dataQuestions={dataQuestions}
           questionChoices={questionChoices}
           questionIndex={questionIndex}
-          filterChoices={filterChoices}
           selectedOptions={selectedOptions}
           handleOptionChange={handleOptionChange}
           handleReset={handleReset}
@@ -133,8 +118,7 @@ const Home = () => {
         />
       </div>
     </main>
-
   );
-}
+};
 
 export default Home;
