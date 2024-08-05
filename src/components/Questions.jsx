@@ -11,7 +11,8 @@ const Question = ({
   handleReset,
   handleBack,
   handleNext,
-  handleReviewClick
+  handleReviewClick,
+  showLastQuestionMessage // Receive this prop
 }) => {
   const [rendered, setRendered] = useState(false);
 
@@ -74,6 +75,7 @@ const Question = ({
             <Button
               variant="contained"
               onClick={handleReviewClick}
+              disabled={showLastQuestionMessage} // Disable if it's the last question
             >
               Review
             </Button>
@@ -93,6 +95,7 @@ Question.propTypes = {
   handleBack: PropTypes.func.isRequired,
   handleNext: PropTypes.func.isRequired,
   handleReviewClick: PropTypes.func.isRequired,
+  showLastQuestionMessage: PropTypes.bool.isRequired 
 };
 
 export default Question;

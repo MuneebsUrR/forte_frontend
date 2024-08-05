@@ -3,6 +3,7 @@ import usePaperStore from '../Hooks/paperstore';
 import Info from '../components/Info';
 import Question from '../components/Questions';
 import Sidebar from '../components/Sidebar';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
 
 const Home = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -11,6 +12,7 @@ const Home = () => {
   const [currentSubjectIndex, setCurrentSubjectIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
 
   // Access Zustand store
   const { getData } = usePaperStore(state => ({
@@ -19,7 +21,6 @@ const Home = () => {
   }));
 
   const data = getData();
-
 
   useEffect(() => {
     if (data && data.length > 0) {
@@ -32,44 +33,51 @@ const Home = () => {
   }, [currentQuestionIndex, currentSubjectIndex, data]);
 
   const handleNext = () => {
+    if (showLastQuestionMessage) {
+      setOpenDialog(true);
+    } else {
+      moveToNextQuestion();
+    }
+  };
+
+  const handleReviewClick = () => {
+    if (showLastQuestionMessage) {
+      return; // Optionally, you can show an alert or message here
+    } else {
+      moveToNextQuestion();
+    }
+  };
+
+  const moveToNextQuestion = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
       const newQuestionStatuses = { ...questionStatuses };
       const currentQuestionStatus = newQuestionStatuses[currentQuestionIndex];
 
-      // Determine if the question should be marked as completed, skipped, or reviewed
       if (selectedOptions[currentQuestionIndex] !== undefined) {
-        // If option was reset (i.e., empty string), consider it as skipped
         if (selectedOptions[currentQuestionIndex] === '') {
           newQuestionStatuses[currentQuestionIndex] = 'skipped';
         } else if (reviewedQuestions[currentQuestionIndex]) {
-          // Preserve 'reviewed' status if already reviewed and option selected
           newQuestionStatuses[currentQuestionIndex] = 'completed';
         } else {
           newQuestionStatuses[currentQuestionIndex] = 'completed';
         }
       } else {
-        // If no option was selected, mark as skipped
         newQuestionStatuses[currentQuestionIndex] = 'skipped';
       }
 
-      // Update the state with new statuses
       setQuestionStatuses(newQuestionStatuses);
 
-      // Move to the next question or subject
       if (currentQuestionIndex < currentSubject.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else if (currentSubjectIndex < data.length - 1) {
         setCurrentSubjectIndex(currentSubjectIndex + 1);
         setCurrentQuestionIndex(0);
-
-        // Reset question statuses and reviewed questions for new section
         setQuestionStatuses({});
         setReviewedQuestions({});
       }
     }
   };
-
 
   const handleBack = () => {
     if (currentQuestionIndex > 0) {
@@ -96,45 +104,59 @@ const Home = () => {
     setSelectedOptions(newSelectedOptions);
   };
 
-  const handleReviewClick = () => {
-    // Check if an option is selected for the current question
+  const handleReview = () => {
     if (selectedOptions[currentQuestionIndex] === undefined || selectedOptions[currentQuestionIndex] === '') {
-      // Do nothing if no option is selected
       return;
     }
-  
-    // Mark the question as reviewed if an option is selected
+
     const newReviewedQuestions = { ...reviewedQuestions };
     newReviewedQuestions[currentQuestionIndex] = true;
     setReviewedQuestions(newReviewedQuestions);
-  
+
     const newQuestionStatuses = { ...questionStatuses };
-  
-    // Update the status to reviewed if the question was previously skipped or solved
+
     if (newQuestionStatuses[currentQuestionIndex] === 'skipped' || newQuestionStatuses[currentQuestionIndex] === 'completed') {
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
     } else if (!newQuestionStatuses[currentQuestionIndex]) {
-      // If the question is neither reviewed nor completed, set it as reviewed
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
     }
     setQuestionStatuses(newQuestionStatuses);
-  
-    // Move to the next question
+
     if (currentQuestionIndex < data[currentSubjectIndex].questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else if (currentSubjectIndex < data.length - 1) {
       setCurrentSubjectIndex(currentSubjectIndex + 1);
       setCurrentQuestionIndex(0);
-  
-      // Reset question statuses and reviewed questions for new section
       setQuestionStatuses({});
       setReviewedQuestions({});
     }
   };
-  
 
   const handleJumpToQuestion = (questionIndex) => {
     setCurrentQuestionIndex(questionIndex);
+  };
+
+  const handleDialogClose = (moveToNextSection) => {
+    if (moveToNextSection) {
+      // Save last question status before moving to next section
+      const currentSubject = data[currentSubjectIndex];
+      const newQuestionStatuses = { ...questionStatuses };
+      const lastQuestionIndex = currentSubject.questions.length - 1;
+
+      if (selectedOptions[lastQuestionIndex] !== undefined) {
+        if (selectedOptions[lastQuestionIndex] === '') {
+          newQuestionStatuses[lastQuestionIndex] = 'skipped';
+        } else {
+          newQuestionStatuses[lastQuestionIndex] = 'completed';
+        }
+      } else {
+        newQuestionStatuses[lastQuestionIndex] = 'skipped';
+      }
+
+      setQuestionStatuses(newQuestionStatuses);
+      moveToNextQuestion();
+    }
+    setOpenDialog(false);
   };
 
   const currentSubject = data ? data[currentSubjectIndex] : null;
@@ -162,7 +184,8 @@ const Home = () => {
                   handleReset={handleReset}
                   handleBack={handleBack}
                   handleNext={handleNext}
-                  handleReviewClick={handleReviewClick}
+                  handleReviewClick={handleReview}
+                  showLastQuestionMessage={showLastQuestionMessage} // Pass this prop
                 />
                 {showLastQuestionMessage && (
                   <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 text-center">
@@ -177,9 +200,20 @@ const Home = () => {
       <Sidebar
         questionStatuses={questionStatuses}
         totalQuestions={currentSubject ? currentSubject.questions.length : 0}
-        currentQuestionIndex={currentQuestionIndex} // Pass currentQuestionIndex to Sidebar
+        currentQuestionIndex={currentQuestionIndex}
         onJumpToQuestion={handleJumpToQuestion}
       />
+
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>End of Section</DialogTitle>
+        <DialogContent>
+          <p>You have reached the end of this section. Would you like to move to the next section or continue reviewing the current section?</p>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleDialogClose(true)} color="primary">Move to Next Section</Button>
+          <Button onClick={() => handleDialogClose(false)} color="secondary">Continue Reviewing</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
