@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
 import usePaperStore from '../Hooks/paperstore';
 import Info from '../components/Info';
 import Question from '../components/Questions';
@@ -6,6 +7,7 @@ import Sidebar from '../components/Sidebar';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
 
 const Home = () => {
+  const navigate = useNavigate(); // Initialize navigate
   const [selectedOptions, setSelectedOptions] = useState({});
   const [questionStatuses, setQuestionStatuses] = useState({});
   const [reviewedQuestions, setReviewedQuestions] = useState({});
@@ -13,6 +15,7 @@ const Home = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
+  const [finalDialog, setFinalDialog] = useState(false); // New state for final dialog
 
   // Access Zustand store
   const { getData } = usePaperStore(state => ({
@@ -33,7 +36,12 @@ const Home = () => {
   }, [currentQuestionIndex, currentSubjectIndex, data]);
 
   const handleNext = () => {
-    if (showLastQuestionMessage) {
+    const isLastQuestion = currentQuestionIndex === data[currentSubjectIndex].questions.length - 1;
+    const isLastSection = currentSubjectIndex === data.length - 1;
+
+    if (isLastQuestion && isLastSection) {
+      setFinalDialog(true);
+    } else if (showLastQuestionMessage) {
       setOpenDialog(true);
     } else {
       moveToNextQuestion();
@@ -159,6 +167,15 @@ const Home = () => {
     setOpenDialog(false);
   };
 
+  const handleFinalDialogClose = (submitTest) => {
+    if (submitTest) {
+      // Navigate to /result
+      navigate('/result');
+    } else {
+      setFinalDialog(false);
+    }
+  };
+
   const currentSubject = data ? data[currentSubjectIndex] : null;
   const currentQuestion = currentSubject ? currentSubject.questions[currentQuestionIndex] : null;
 
@@ -212,6 +229,17 @@ const Home = () => {
         <DialogActions>
           <Button onClick={() => handleDialogClose(true)} color="primary">Move to Next Section</Button>
           <Button onClick={() => handleDialogClose(false)} color="secondary">Continue Reviewing</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={finalDialog} onClose={() => setFinalDialog(false)}>
+        <DialogTitle>Submit Test</DialogTitle>
+        <DialogContent>
+          <p>You have reached the last question of the last section. Would you like to submit the test or continue reviewing?</p>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleFinalDialogClose(true)} color="primary">Submit Test</Button>
+          <Button onClick={() => handleFinalDialogClose(false)} color="secondary">Continue Reviewing</Button>
         </DialogActions>
       </Dialog>
     </div>
