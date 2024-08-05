@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import usePaperStore from '../Hooks/paperstore'; 
-import Info from '../components/Info'; 
-import Question from '../components/Questions'; 
+import usePaperStore from '../Hooks/paperstore';
+import Info from '../components/Info';
+import Question from '../components/Questions';
 import Sidebar from '../components/Sidebar';
 
 const Home = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const [questionStatuses, setQuestionStatuses] = useState({});
-  const [reviewedQuestions, setReviewedQuestions] = useState({}); 
+  const [reviewedQuestions, setReviewedQuestions] = useState({});
   const [currentSubjectIndex, setCurrentSubjectIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
 
   // Access Zustand store
-  const { getData} = usePaperStore(state => ({
+  const { getData } = usePaperStore(state => ({
     getData: state.getData,
     getLoading: state.getLoading,
   }));
@@ -30,13 +30,13 @@ const Home = () => {
       }
     }
   }, [currentQuestionIndex, currentSubjectIndex, data]);
- 
+
   const handleNext = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
       const newQuestionStatuses = { ...questionStatuses };
       const currentQuestionStatus = newQuestionStatuses[currentQuestionIndex];
-      
+
       // Determine if the question should be marked as completed, skipped, or reviewed
       if (selectedOptions[currentQuestionIndex] !== undefined) {
         // If option was reset (i.e., empty string), consider it as skipped
@@ -52,24 +52,24 @@ const Home = () => {
         // If no option was selected, mark as skipped
         newQuestionStatuses[currentQuestionIndex] = 'skipped';
       }
-      
+
       // Update the state with new statuses
       setQuestionStatuses(newQuestionStatuses);
-  
+
       // Move to the next question or subject
       if (currentQuestionIndex < currentSubject.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else if (currentSubjectIndex < data.length - 1) {
         setCurrentSubjectIndex(currentSubjectIndex + 1);
         setCurrentQuestionIndex(0);
-  
+
         // Reset question statuses and reviewed questions for new section
         setQuestionStatuses({});
         setReviewedQuestions({});
       }
     }
   };
-    
+
 
   const handleBack = () => {
     if (currentQuestionIndex > 0) {
@@ -103,13 +103,18 @@ const Home = () => {
       return;
     }
   
-    // Mark the question as reviewed
+    // Mark the question as reviewed if an option is selected
     const newReviewedQuestions = { ...reviewedQuestions };
     newReviewedQuestions[currentQuestionIndex] = true;
     setReviewedQuestions(newReviewedQuestions);
   
     const newQuestionStatuses = { ...questionStatuses };
-    if (!newQuestionStatuses[currentQuestionIndex]) {
+  
+    // Update the status to reviewed if the question was previously skipped or solved
+    if (newQuestionStatuses[currentQuestionIndex] === 'skipped' || newQuestionStatuses[currentQuestionIndex] === 'completed') {
+      newQuestionStatuses[currentQuestionIndex] = 'reviewed';
+    } else if (!newQuestionStatuses[currentQuestionIndex]) {
+      // If the question is neither reviewed nor completed, set it as reviewed
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
     }
     setQuestionStatuses(newQuestionStatuses);
@@ -140,11 +145,11 @@ const Home = () => {
       <div className="flex-1 p-4">
         {currentSubject && (
           <>
-            <Info 
-              subject_name={currentSubject.NODE_NAME}  
-              noq={currentSubject.NOQ}                 
-              wtg={currentSubject.WTG}                
-              time_allocated={currentSubject.TIME_ALLOCATED}  
+            <Info
+              subject_name={currentSubject.NODE_NAME}
+              noq={currentSubject.NOQ}
+              wtg={currentSubject.WTG}
+              time_allocated={currentSubject.TIME_ALLOCATED}
               isNegativeMarking={!!currentSubject.isNegativeMarking}
             />
             {currentQuestion && (
@@ -169,7 +174,7 @@ const Home = () => {
           </>
         )}
       </div>
-      <Sidebar 
+      <Sidebar
         questionStatuses={questionStatuses}
         totalQuestions={currentSubject ? currentSubject.questions.length : 0}
         currentQuestionIndex={currentQuestionIndex} // Pass currentQuestionIndex to Sidebar

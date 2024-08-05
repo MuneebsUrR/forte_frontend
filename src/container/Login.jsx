@@ -108,8 +108,8 @@ const Login = () => {
         cookies.set('token', responseData.token, { path: '/' });
         
         setLoginResult(responseData); 
-         navigate("/picture");
-        //  navigate("/instructions");
+        // navigate("/picture");
+        navigate("/instructions");
       } else {
         alert(responseData.message);
       }
