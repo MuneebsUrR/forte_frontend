@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
-import { grey, blue } from '@mui/material/colors';
+import { grey, blue, yellow } from '@mui/material/colors';
 
 const Sidebar = ({ questionStatuses, totalQuestions, currentQuestionIndex, onJumpToQuestion }) => {
   const theme = useTheme();
@@ -22,11 +22,9 @@ const Sidebar = ({ questionStatuses, totalQuestions, currentQuestionIndex, onJum
           display: 'flex', 
           alignItems: 'center', 
           overflowX: 'auto' 
-        }} // Add horizontal scrolling if needed
+        }}
       >
-        <Typography variant="h6" sx={{ marginRight: 2 }}>
-         
-        </Typography>
+        
         <Box className="flex items-center space-x-2">
           <Box className="flex items-center">
             <Box 
@@ -45,7 +43,7 @@ const Sidebar = ({ questionStatuses, totalQuestions, currentQuestionIndex, onJum
           <Box className="flex items-center">
             <Box 
               className="w-3 h-3 mr-1"
-              sx={{ bgcolor: theme.palette.warning.main }}
+              sx={{ bgcolor: yellow[700] }} // Off-yellow color for reviewed questions
             />
             <Typography variant="body2">Reviewed</Typography>
           </Box>
@@ -64,7 +62,7 @@ const Sidebar = ({ questionStatuses, totalQuestions, currentQuestionIndex, onJum
       <Box 
         className="grid grid-cols-5 gap-2 p-2 overflow-y-auto" 
         sx={{ 
-          maxHeight: '70vh', // Adjust this value to control the height of the scrollable area
+          maxHeight: '70vh',
         }}
       >
         {Array.from({ length: totalQuestions }).map((_, index) => {
@@ -75,13 +73,13 @@ const Sidebar = ({ questionStatuses, totalQuestions, currentQuestionIndex, onJum
           } else {
             switch (questionStatuses[index]) {
               case 'completed':
-                bgColor = theme.palette.success.main; // Use theme's success color
+                bgColor = theme.palette.success.main;
                 break;
               case 'skipped':
-                bgColor = theme.palette.error.main; // Use theme's error color
+                bgColor = theme.palette.error.main;
                 break;
               case 'reviewed':
-                bgColor = theme.palette.warning.main; // Use theme's warning color
+                bgColor = yellow[700]; // Off-yellow color for reviewed questions
                 break;
               default:
                 bgColor = grey[300];
@@ -93,9 +91,9 @@ const Sidebar = ({ questionStatuses, totalQuestions, currentQuestionIndex, onJum
             <Button
               key={index}
               variant="contained"
-              sx={{ bgcolor: bgColor, color: theme.palette.getContrastText(bgColor) }} // Use theme's text color contrast
+              sx={{ bgcolor: bgColor, color: theme.palette.getContrastText(bgColor) }}
               onClick={() => onJumpToQuestion(index)}
-              size="small" // Adjust button size for better spacing
+              size="small"
             >
               {index + 1}
             </Button>
