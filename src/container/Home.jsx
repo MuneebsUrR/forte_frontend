@@ -5,6 +5,7 @@ import useProgressStore from '../Hooks/ProgressStore';
 import Info from '../components/Info';
 import Question from '../components/Questions';
 import Sidebar from '../components/Sidebar';
+import ActivityTracker from '../components/ActivityTracker';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
 
 const SectionDialog = ({ open, onClose, title, content, primaryAction, secondaryAction }) => (
@@ -26,16 +27,16 @@ const LastQuestionMessage = () => (
   </div>
 );
 
-const QuestionNavigation = ({ 
-  currentQuestion, 
-  questionIndex, 
-  selectedOptions, 
-  handleOptionChange, 
-  handleReset, 
-  handleBack, 
-  handleNext, 
-  handleReviewClick, 
-  showLastQuestionMessage 
+const QuestionNavigation = ({
+  currentQuestion,
+  questionIndex,
+  selectedOptions,
+  handleOptionChange,
+  handleReset,
+  handleBack,
+  handleNext,
+  handleReviewClick,
+  showLastQuestionMessage
 }) => (
   <Question
     question={currentQuestion}
@@ -73,7 +74,7 @@ const Home = () => {
   const data = getData();
 
   useEffect(() => {
-    console.log('Fetched data:', data);
+    
     if (data && data.length > 0) {
       const currentSubject = data[currentSubjectIndex];
       if (currentSubject) {
@@ -260,7 +261,15 @@ const Home = () => {
         currentQuestionIndex={currentQuestionIndex}
         onJumpToQuestion={handleJumpToQuestion}
       />
-
+      {/* Add the ActivityTracker component */}
+      <ActivityTracker
+        candidateId={candidateId}
+        sqpId={sqpId}
+        qpId={qpId}
+        currentQuestion={currentQuestion}
+        selectedAnswer={selectedOptions[currentQuestionIndex]}
+        isAttempted={questionStatuses[currentQuestionIndex] === 'completed' || questionStatuses[currentQuestionIndex] === 'reviewed'}
+      />
       <SectionDialog
         open={openDialog}
         onClose={handleDialogClose}
