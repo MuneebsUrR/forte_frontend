@@ -7,7 +7,6 @@ const Info = ({ subject_name, noq, wtg, time_allocated, isNegativeMarking }) => 
   const [timeRemaining, setTimeRemaining] = useState(time_allocated * 60);
 
   useEffect(() => {
-    // Reset the timer when the `time_allocated` changes
     setTimeRemaining(time_allocated * 60);
   }, [time_allocated]);
 
@@ -28,19 +27,28 @@ const Info = ({ subject_name, noq, wtg, time_allocated, isNegativeMarking }) => 
   const minutes = Math.floor(timeRemaining / 60);
   const seconds = timeRemaining % 60;
 
-  return (
-    <div className='flex flex-col items-center px-4 w-full'>
-      <div className='flex justify-center items-center w-full text-center mb-4'>
-        <h1 className='mx-4'><strong>Name:</strong> {loginResult?.user?.FIRST_NAME || 'N/A'}</h1>
-        <h1 className='mx-4'><strong>Roll No:</strong> {loginResult?.user?.CANDIDATE_ID || 'N/A'}</h1>
-      </div>
+  // Determine the color based on the time remaining
+  const timerColor = timeRemaining < 300 ? 'text-red-500' : 'text-green-500';
 
-      <div className='flex justify-between items-center w-full text-center'>
-        <h2 className='flex-1'>{subject_name}</h2>
-        <p className='flex-1'>Total Questions: {noq}</p>
-        <p className='flex-1'>Weightage: {wtg}</p>
-        <p className='flex-1'>{minutes} min:{seconds.toString().padStart(2, '0')} sec</p>
-        <p className='flex-1'>Negative Marking: {isNegativeMarking ? 'Yes' : 'No'}</p>
+  return (
+    <div className="border border-gray-300 rounded-lg p-4 w-full">
+      <div className='flex flex-col items-center px-4 w-full'>
+        <div className='flex justify-center items-center w-full text-center mb-4'>
+          <h1 className='mx-4'><strong>Name:</strong> {loginResult?.user?.FIRST_NAME || 'N/A'}</h1>
+          <h1 className='mx-4'><strong>Roll No:</strong> {loginResult?.user?.CANDIDATE_ID || 'N/A'}</h1>
+        </div>
+
+        <div className='flex justify-between items-center w-full text-center'>
+          <h2 className='flex-1'>{subject_name}</h2>
+          <p className='flex-1'>Total Questions: {noq}</p>
+          <p className='flex-1'>Weightage: {wtg}</p>
+          <p className='flex-1'>
+            <span className={`${timerColor} font-bold text-xl`}>
+              {minutes} min:{seconds.toString().padStart(2, '0')} sec
+            </span>
+          </p>
+          <p className='flex-1'>Negative Marking: {isNegativeMarking ? 'Yes' : 'No'}</p>
+        </div>
       </div>
     </div>
   );

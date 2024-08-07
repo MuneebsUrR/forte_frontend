@@ -189,7 +189,7 @@ const Home = () => {
               noq={currentSubject.NOQ}
               wtg={currentSubject.WTG}
               time_allocated={currentSubject.TIME_ALLOCATED}
-              isNegativeMarking={!!currentSubject.isNegativeMarking}
+              isNegativeMarking={!!currentSubject.IS_NEGATIVE_MARKING}
             />
             {currentQuestion && (
               <>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Checkbox, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useTheme } from '@mui/material';
 import useLoginStore from "../Hooks/loginStore";
 import Cookies from 'universal-cookie';
-import usePaperStore from '../Hooks/paperstore'; 
+import usePaperStore from '../Hooks/paperstore';
 
 const Header = () => (
   <Box textAlign="center" my={8}>
@@ -53,6 +53,8 @@ const TestSummary = ({ data }) => {
             <TableCell>Subject</TableCell>
             <TableCell>No. Of Questions</TableCell>
             <TableCell>Weightage %</TableCell>
+            <TableCell>Time Allocated (min)</TableCell>
+            <TableCell>Negative Marking</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -61,6 +63,8 @@ const TestSummary = ({ data }) => {
               <TableCell>{item.NODE_NAME}</TableCell>
               <TableCell>{item.NOQ}</TableCell>
               <TableCell>{item.WTG}</TableCell>
+              <TableCell>{item.TIME_ALLOCATED}</TableCell>
+              <TableCell>{item.IS_NEGATIVE_MARKING ? 'Yes' : 'No'}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -122,7 +126,7 @@ const Instructions = () => {
 
   return (
     <Container className='px-4'
-      maxWidth="md" 
+      maxWidth="md"
       sx={{
         p: 8,
         borderRadius: 2,
@@ -140,10 +144,10 @@ const Instructions = () => {
         label="I have carefully read the instructions and I agree to follow them"
         sx={{ color: isDarkMode ? 'text.primary' : 'text.secondary' }}
       />
-      <Button 
-        variant="contained" 
-        color="primary" 
-        onClick={handleStartTest} 
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleStartTest}
         disabled={!checked}
       >
         Start Test
