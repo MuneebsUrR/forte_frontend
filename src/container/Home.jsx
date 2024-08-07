@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
+import { useNavigate } from 'react-router-dom';
 import usePaperStore from '../Hooks/paperstore';
+import useProgressStore from '../Hooks/ProgressStore';
 import Info from '../components/Info';
 import Question from '../components/Questions';
 import Sidebar from '../components/Sidebar';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
 
 const Home = () => {
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
   const [selectedOptions, setSelectedOptions] = useState({});
   const [questionStatuses, setQuestionStatuses] = useState({});
   const [reviewedQuestions, setReviewedQuestions] = useState({});
@@ -15,7 +16,13 @@ const Home = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [finalDialog, setFinalDialog] = useState(false); // New state for final dialog
+  const [finalDialog, setFinalDialog] = useState(false);
+
+  const candidateId = useProgressStore((state) => state.candidateId);
+  const sqpId = useProgressStore((state) => state.sqpId);
+  const qpId = useProgressStore((state) => state.qpId);
+
+
 
   // Access Zustand store
   const { getData } = usePaperStore(state => ({
@@ -26,6 +33,7 @@ const Home = () => {
   const data = getData();
 
   useEffect(() => {
+    console.log('Fetched data:', data);
     if (data && data.length > 0) {
       const currentSubject = data[currentSubjectIndex];
       if (currentSubject) {
@@ -242,6 +250,7 @@ const Home = () => {
           <Button onClick={() => handleFinalDialogClose(false)} color="secondary">Continue Reviewing</Button>
         </DialogActions>
       </Dialog>
+
     </div>
   );
 };
