@@ -97,17 +97,12 @@ const Home = () => {
     }
   };
 
-  const handleReviewClick = () => {
-    if (!showLastQuestionMessage) {
-      moveToNextQuestion();
-    }
-  };
 
   const moveToNextQuestion = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
       const newQuestionStatuses = { ...questionStatuses };
-      const currentQuestionStatus = newQuestionStatuses[currentQuestionIndex];
+      
 
       if (selectedOptions[currentQuestionIndex] !== undefined) {
         if (selectedOptions[currentQuestionIndex] === '') {
