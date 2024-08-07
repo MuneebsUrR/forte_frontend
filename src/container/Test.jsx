@@ -1,213 +1,134 @@
 import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import Cookies from 'universal-cookie';
-import useLoginStore from "../Hooks/loginStore";
+import { useNavigate } from 'react-router-dom';
 import usePaperStore from '../Hooks/paperstore';
-import { MathJaxContext, MathJax } from 'better-react-mathjax';
-import { Button, Radio, Typography } from '@mui/material';
+import useProgressStore from '../Hooks/ProgressStore';
+import Info from '../components/Info';
+import Question from '../components/Questions';
+import Sidebar from '../components/Sidebar';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
 
-const Info = ({ subject_name, noq, wtg, time_allocated, isNegativeMarking }) => {
-  const loginResult = useLoginStore((state) => state.loginResult);
-  const [timeRemaining, setTimeRemaining] = useState(time_allocated * 60);
+const SectionDialog = ({ open, onClose, title, content, primaryAction, secondaryAction }) => (
+  <Dialog open={open} onClose={() => onClose(false)}>
+    <DialogTitle>{title}</DialogTitle>
+    <DialogContent>
+      <p>{content}</p>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={() => onClose(true)} color="primary">{primaryAction}</Button>
+      <Button onClick={() => onClose(false)} color="secondary">{secondaryAction}</Button>
+    </DialogActions>
+  </Dialog>
+);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeRemaining((prevTime) => {
-        if (prevTime <= 0) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prevTime - 1;
-      });
-    }, 1000);
+const LastQuestionMessage = () => (
+  <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 text-center">
+    This is the last question of this section. If you have time, you can review your answers or start the next section.
+  </div>
+);
 
-    return () => clearInterval(timer);
-  }, [time_allocated]);
+const QuestionNavigation = ({ 
+  currentQuestion, 
+  questionIndex, 
+  selectedOptions, 
+  handleOptionChange, 
+  handleReset, 
+  handleBack, 
+  handleNext, 
+  handleReviewClick, 
+  showLastQuestionMessage 
+}) => (
+  <Question
+    question={currentQuestion}
+    questionIndex={questionIndex}
+    selectedOptions={selectedOptions}
+    handleOptionChange={handleOptionChange}
+    handleReset={handleReset}
+    handleBack={handleBack}
+    handleNext={handleNext}
+    handleReviewClick={handleReviewClick}
+    showLastQuestionMessage={showLastQuestionMessage}
+  />
+);
 
-  const minutes = Math.floor(timeRemaining / 60);
-  const seconds = timeRemaining % 60;
-
-  return (
-    <div className='flex flex-col items-center px-4 w-full'>
-      <div className='flex justify-center items-center w-full text-center mb-4'>
-        <h1 className='mx-4'><strong>Name:</strong> {loginResult?.user?.FIRST_NAME || 'N/A'}</h1>
-        <h1 className='mx-4'><strong>Roll No:</strong> {loginResult?.user?.CANDIDATE_ID || 'N/A'}</h1>
-      </div>
-
-      <div className='flex justify-between items-center w-full text-center'>
-        <h2 className='flex-1'>{subject_name}</h2>
-        <p className='flex-1'>Total Questions: {noq}</p>
-        <p className='flex-1'>Weightage: {wtg}</p>
-        <p className='flex-1'>{minutes} min:{seconds.toString().padStart(2, '0')} sec</p>
-        <p className='flex-1'>Negative Marking: {isNegativeMarking ? 'Yes' : 'No'}</p>
-      </div>
-    </div>
-  );
-};
-
-Info.propTypes = {
-  subject_name: PropTypes.string.isRequired,
-  noq: PropTypes.number.isRequired,
-  wtg: PropTypes.string.isRequired,
-  time_allocated: PropTypes.number.isRequired,
-  isNegativeMarking: PropTypes.bool.isRequired,
-};
-
-const Question = ({
-  question,
-  questionIndex,
-  selectedOptions,
-  handleOptionChange,
-  handleReset,
-  handleBack,
-  handleNext,
-  handleReviewClick
-}) => {
-  const [rendered, setRendered] = useState(false);
-
-  useEffect(() => {
-    setRendered(true);
-  }, []);
-
-  if (!rendered) return null;
-
-  return (
-    <MathJaxContext>
-      <div className="flex-[3] w-full h-[100%] overflow-auto">
-        <Typography variant="h5" className='ml-4'>
-          Question No: {questionIndex + 1}
-        </Typography>
-        <MathJax>
-          <Typography className='ml-4 mr-4 mb-4'>
-            {question?.QUESTION_TEXT}
-          </Typography>
-        </MathJax>
-        {question.answer_choices.map((choice, index) => {
-          const choiceId = `choice-${index}`;
-          return (
-            <label key={index} htmlFor={choiceId} className="flex items-center cursor-pointer mb-2">
-              <Radio
-                name="options"
-                id={choiceId}
-                checked={selectedOptions[questionIndex] === choiceId}
-                onChange={handleOptionChange}
-                value={choiceId}
-              />
-              <Typography className='ml-2'>
-                {choice.ANS_CHOICE_TEXT}
-              </Typography>
-            </label>
-          );
-        })}
-        <div className='flex flex-col justify-start items-start gap-4 m-4'>
-          <div className='flex justify-around items-start w-full'>
-            <Button
-              variant="contained"
-              onClick={handleReset}
-              disabled={!selectedOptions[questionIndex]}
-            >
-              Reset
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleBack}
-              disabled={questionIndex <= 0}
-            >
-              Back
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleNext}
-            >
-              Next
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleReviewClick}
-            >
-              Review
-            </Button>
-          </div>
-        </div>
-      </div>
-    </MathJaxContext>
-  );
-};
-
-Question.propTypes = {
-  question: PropTypes.object.isRequired,
-  questionIndex: PropTypes.number.isRequired,
-  selectedOptions: PropTypes.array.isRequired,
-  handleOptionChange: PropTypes.func.isRequired,
-  handleReset: PropTypes.func.isRequired,
-  handleBack: PropTypes.func.isRequired,
-  handleNext: PropTypes.func.isRequired,
-  handleReviewClick: PropTypes.func.isRequired,
-};
-
-const DataDisplayComponent = () => {
-  const { setData, setLoading, setError, data, loading, error } = usePaperStore();
+const Home = () => {
+  const navigate = useNavigate();
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const [questionStatuses, setQuestionStatuses] = useState({});
+  const [reviewedQuestions, setReviewedQuestions] = useState({});
   const [currentSubjectIndex, setCurrentSubjectIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedOptions, setSelectedOptions] = useState([]);
   const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [finalDialog, setFinalDialog] = useState(false);
+
+  const candidateId = useProgressStore((state) => state.candidateId);
+  const sqpId = useProgressStore((state) => state.sqpId);
+  const qpId = useProgressStore((state) => state.qpId);
+
+  const { getData } = usePaperStore(state => ({
+    getData: state.getData,
+    getLoading: state.getLoading,
+  }));
+
+  const data = getData();
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const cookies = new Cookies();
-        const token = cookies.get('token');
-        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${import.meta.env.VITE_API_PORT}`;
-
-        const response = await fetch(`${apiUrl}/paper/getPaper`, {
-          method: 'GET',
-          headers: {
-            'apikey': token
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const result = await response.json();
-
-        if (result.success) {
-          setData(result.data);
-        } else {
-          throw new Error('API response indicates failure.');
-        }
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [setData, setLoading, setError]);
-
-  useEffect(() => {
+    console.log('Fetched data:', data);
     if (data && data.length > 0) {
       const currentSubject = data[currentSubjectIndex];
       if (currentSubject) {
         const isLastQuestion = currentQuestionIndex === currentSubject.questions.length - 1;
-  
-        // Set the message visibility based on whether it's the last question
         setShowLastQuestionMessage(isLastQuestion);
       }
     }
   }, [currentQuestionIndex, currentSubjectIndex, data]);
-  
+
   const handleNext = () => {
+    const isLastQuestion = currentQuestionIndex === data[currentSubjectIndex].questions.length - 1;
+    const isLastSection = currentSubjectIndex === data.length - 1;
+
+    if (isLastQuestion && isLastSection) {
+      setFinalDialog(true);
+    } else if (showLastQuestionMessage) {
+      setOpenDialog(true);
+    } else {
+      moveToNextQuestion();
+    }
+  };
+
+  const handleReviewClick = () => {
+    if (!showLastQuestionMessage) {
+      moveToNextQuestion();
+    }
+  };
+
+  const moveToNextQuestion = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
+      const newQuestionStatuses = { ...questionStatuses };
+      const currentQuestionStatus = newQuestionStatuses[currentQuestionIndex];
+
+      if (selectedOptions[currentQuestionIndex] !== undefined) {
+        if (selectedOptions[currentQuestionIndex] === '') {
+          newQuestionStatuses[currentQuestionIndex] = 'skipped';
+        } else if (reviewedQuestions[currentQuestionIndex]) {
+          newQuestionStatuses[currentQuestionIndex] = 'completed';
+        } else {
+          newQuestionStatuses[currentQuestionIndex] = 'completed';
+        }
+      } else {
+        newQuestionStatuses[currentQuestionIndex] = 'skipped';
+      }
+
+      setQuestionStatuses(newQuestionStatuses);
+
       if (currentQuestionIndex < currentSubject.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else if (currentSubjectIndex < data.length - 1) {
         setCurrentSubjectIndex(currentSubjectIndex + 1);
         setCurrentQuestionIndex(0);
+        setQuestionStatuses({});
+        setReviewedQuestions({});
       }
     }
   };
@@ -226,59 +147,139 @@ const DataDisplayComponent = () => {
   };
 
   const handleOptionChange = (e) => {
-    const newSelectedOptions = [...selectedOptions];
+    const newSelectedOptions = { ...selectedOptions };
     newSelectedOptions[currentQuestionIndex] = e.target.value;
     setSelectedOptions(newSelectedOptions);
   };
 
   const handleReset = () => {
-    const newSelectedOptions = [...selectedOptions];
+    const newSelectedOptions = { ...selectedOptions };
     newSelectedOptions[currentQuestionIndex] = '';
     setSelectedOptions(newSelectedOptions);
   };
 
-  const handleReviewClick = () => {
-    console.log('Review clicked');
+  const handleReview = () => {
+    if (selectedOptions[currentQuestionIndex] === undefined || selectedOptions[currentQuestionIndex] === '') {
+      return;
+    }
+
+    const newReviewedQuestions = { ...reviewedQuestions };
+    newReviewedQuestions[currentQuestionIndex] = true;
+    setReviewedQuestions(newReviewedQuestions);
+
+    const newQuestionStatuses = { ...questionStatuses };
+
+    if (newQuestionStatuses[currentQuestionIndex] === 'skipped' || newQuestionStatuses[currentQuestionIndex] === 'completed') {
+      newQuestionStatuses[currentQuestionIndex] = 'reviewed';
+    } else if (!newQuestionStatuses[currentQuestionIndex]) {
+      newQuestionStatuses[currentQuestionIndex] = 'reviewed';
+    }
+    setQuestionStatuses(newQuestionStatuses);
+
+    if (currentQuestionIndex < data[currentSubjectIndex].questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else if (currentSubjectIndex < data.length - 1) {
+      setCurrentSubjectIndex(currentSubjectIndex + 1);
+      setCurrentQuestionIndex(0);
+      setQuestionStatuses({});
+      setReviewedQuestions({});
+    }
+  };
+
+  const handleJumpToQuestion = (questionIndex) => {
+    setCurrentQuestionIndex(questionIndex);
+  };
+
+  const handleDialogClose = (moveToNextSection) => {
+    if (moveToNextSection) {
+      const currentSubject = data[currentSubjectIndex];
+      const newQuestionStatuses = { ...questionStatuses };
+      const lastQuestionIndex = currentSubject.questions.length - 1;
+
+      if (selectedOptions[lastQuestionIndex] !== undefined) {
+        if (selectedOptions[lastQuestionIndex] === '') {
+          newQuestionStatuses[lastQuestionIndex] = 'skipped';
+        } else {
+          newQuestionStatuses[lastQuestionIndex] = 'completed';
+        }
+      } else {
+        newQuestionStatuses[lastQuestionIndex] = 'skipped';
+      }
+
+      setQuestionStatuses(newQuestionStatuses);
+      moveToNextQuestion();
+    }
+    setOpenDialog(false);
+  };
+
+  const handleFinalDialogClose = (submitTest) => {
+    if (submitTest) {
+      navigate('/result');
+    } else {
+      setFinalDialog(false);
+    }
   };
 
   const currentSubject = data ? data[currentSubjectIndex] : null;
   const currentQuestion = currentSubject ? currentSubject.questions[currentQuestionIndex] : null;
 
   return (
-    <MathJaxContext>
-      {currentSubject && (
-        <>
-          <Info 
-            subject_name={currentSubject.subject_name}
-            noq={currentSubject.noq}
-            wtg={currentSubject.wtg}
-            time_allocated={currentSubject.time_allocated}
-            isNegativeMarking={!!currentSubject.isNegativeMarking}
-          />
+    <div className="flex">
+      <div className="flex-1 p-4">
+        {currentSubject && (
+          <>
+            <Info
+              subject_name={currentSubject.NODE_NAME}
+              noq={currentSubject.NOQ}
+              wtg={currentSubject.WTG}
+              time_allocated={currentSubject.TIME_ALLOCATED}
+              isNegativeMarking={!!currentSubject.IS_NEGATIVE_MARKING}
+            />
+            {currentQuestion && (
+              <>
+                <QuestionNavigation
+                  currentQuestion={currentQuestion}
+                  questionIndex={currentQuestionIndex}
+                  selectedOptions={selectedOptions}
+                  handleOptionChange={handleOptionChange}
+                  handleReset={handleReset}
+                  handleBack={handleBack}
+                  handleNext={handleNext}
+                  handleReviewClick={handleReview}
+                  showLastQuestionMessage={showLastQuestionMessage}
+                />
+                {showLastQuestionMessage && <LastQuestionMessage />}
+              </>
+            )}
+          </>
+        )}
+      </div>
+      <Sidebar
+        questionStatuses={questionStatuses}
+        totalQuestions={currentSubject ? currentSubject.questions.length : 0}
+        currentQuestionIndex={currentQuestionIndex}
+        onJumpToQuestion={handleJumpToQuestion}
+      />
 
-          {currentQuestion && (
-            <>
-              <Question
-                question={currentQuestion}
-                questionIndex={currentQuestionIndex}
-                selectedOptions={selectedOptions}
-                handleOptionChange={handleOptionChange}
-                handleReset={handleReset}
-                handleBack={handleBack}
-                handleNext={handleNext}
-                handleReviewClick={handleReviewClick}
-              />
-              {showLastQuestionMessage && (
-                <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 text-center">
-                  This is the last question of this section. If you have time, you can review your answers or start the next section.
-                </div>
-              )}
-            </>
-          )}
-        </>
-      )}
-    </MathJaxContext>
+      <SectionDialog
+        open={openDialog}
+        onClose={handleDialogClose}
+        title="End of Section"
+        content="You have reached the end of this section. Would you like to move to the next section or continue reviewing the current section?"
+        primaryAction="Move to Next Section"
+        secondaryAction="Continue Reviewing"
+      />
+
+      <SectionDialog
+        open={finalDialog}
+        onClose={handleFinalDialogClose}
+        title="Submit Test"
+        content="You have reached the last question of the last section. Would you like to submit the test or continue reviewing?"
+        primaryAction="Submit Test"
+        secondaryAction="Continue Reviewing"
+      />
+    </div>
   );
 };
 
-export default DataDisplayComponent;
+export default Home;

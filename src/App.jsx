@@ -12,7 +12,7 @@ import Welcome from "./container/Welcome";
 import Result from "./container/Result";
 import { Snackbar, Alert } from '@mui/material';
 import useFullscreen from './Hooks/useFullscreen'; 
-import Test from './container/Test';
+
 
 const App = () => {
   const [theme, setTheme] = useState("light");
@@ -102,7 +102,6 @@ const App = () => {
         <Route path="/instructions" element={<Instructions />} />
         <Route path="/home" element={<Home />} />
         <Route path="/result" element={<Result results={results} />} />
-        <Route path="/test" element={<Test />} />
       </Routes>
       <Footer />
       <Snackbar open={showWarning} autoHideDuration={3000} onClose={handleWarningClose}>
