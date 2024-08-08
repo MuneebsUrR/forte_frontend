@@ -84,12 +84,17 @@ const Home = () => {
   }, [currentQuestionIndex, currentSubjectIndex, data]);
 
   const logQuestionDetails = (isAttempted, selectedAnswer) => {
+    //tracking user activity
     const currentSubject = data[currentSubjectIndex];
     const currentQuestion = currentSubject?.questions[currentQuestionIndex];
     if (currentQuestion) {
+      console.log('candidateId:', candidateId);
+      console.log('sqpId:', sqpId);
+      console.log('qpId:', qpId);
       console.log('IS_ATTEMPED:', isAttempted);
       console.log('QUESTION_ID:', currentQuestion.QUESTION_ID);
       console.log('SELECTED_ANSWER:', selectedAnswer);
+      console.log('===========================================');
     }
   };
 
