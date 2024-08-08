@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import DOMPurify from 'dompurify'; // Import DOMPurify
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import { Button, Radio, Typography } from '@mui/material';
 
@@ -11,7 +12,8 @@ const Question = ({
   handleReset,
   handleBack,
   handleNext,
-  handleReviewClick
+  handleReviewClick,
+  showLastQuestionMessage // Receive this prop
 }) => {
   const [rendered, setRendered] = useState(false);
 
@@ -28,9 +30,7 @@ const Question = ({
           Question No: {questionIndex + 1}
         </Typography>
         <MathJax>
-          <Typography className='ml-4 mr-4 mb-4'>
-            {question?.QUESTION_TEXT}
-          </Typography>
+          <Typography className='ml-4 mr-4 mb-4' dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(question?.QUESTION_TEXT) }} />
         </MathJax>
         {question.answer_choices.map((choice, index) => {
           const choiceId = `choice-${index}`;
@@ -43,9 +43,7 @@ const Question = ({
                 onChange={handleOptionChange}
                 value={choiceId}
               />
-              <Typography className='ml-2'>
-                {choice.ANS_CHOICE_TEXT}
-              </Typography>
+              <Typography className='ml-2' dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(choice.ANS_CHOICE_TEXT) }} />
             </label>
           );
         })}
@@ -74,6 +72,7 @@ const Question = ({
             <Button
               variant="contained"
               onClick={handleReviewClick}
+              disabled={showLastQuestionMessage} // Disable if it's the last question
             >
               Review
             </Button>
@@ -93,6 +92,7 @@ Question.propTypes = {
   handleBack: PropTypes.func.isRequired,
   handleNext: PropTypes.func.isRequired,
   handleReviewClick: PropTypes.func.isRequired,
+  showLastQuestionMessage: PropTypes.bool.isRequired 
 };
 
 export default Question;

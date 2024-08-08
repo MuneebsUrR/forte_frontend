@@ -109,7 +109,7 @@ const Login = () => {
         
         setLoginResult(responseData); 
         // navigate("/picture");
-        navigate("/instructions");
+        navigate("/picture");
       } else {
         alert(responseData.message);
       }

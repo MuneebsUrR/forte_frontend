@@ -98,11 +98,11 @@ function Picture() {
             </>
           )}
           <div className="login-details">
-          <p><strong>CANDIDATE_ID:</strong> {loginResult.user.CANDIDATE_ID}</p>
-          <p><strong>FIRST_NAME:</strong> {loginResult.user.FIRST_NAME}</p>
-          <p><strong>FATHER_NAME:</strong> {loginResult.user.FATHER_NAME}</p>
+            <p><strong>CANDIDATE_ID:</strong> {loginResult.user.CANDIDATE_ID}</p>
+            <p><strong>FIRST_NAME:</strong> {loginResult.user.FIRST_NAME}</p>
+            <p><strong>FATHER_NAME:</strong> {loginResult.user.FATHER_NAME}</p>
+          </div>
         </div>
-      </div>
 
 
         <div className="button-container flex justify-around items-center w-full mt-1 px-[6rem]">
