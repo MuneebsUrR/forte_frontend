@@ -1,13 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
+import { useNavigate } from 'react-router-dom';
 import usePaperStore from '../Hooks/paperstore';
+import useProgressStore from '../Hooks/ProgressStore';
 import Info from '../components/Info';
 import Question from '../components/Questions';
 import Sidebar from '../components/Sidebar';
+import ActivityTracker from '../components/ActivityTracker';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
 
+const SectionDialog = ({ open, onClose, title, content, primaryAction, secondaryAction }) => (
+  <Dialog open={open} onClose={() => onClose(false)}>
+    <DialogTitle>{title}</DialogTitle>
+    <DialogContent>
+      <p>{content}</p>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={() => onClose(true)} color="primary">{primaryAction}</Button>
+      <Button onClick={() => onClose(false)} color="secondary">{secondaryAction}</Button>
+    </DialogActions>
+  </Dialog>
+);
+
+const LastQuestionMessage = () => (
+  <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 text-center">
+    This is the last question of this section. If you have time, you can review your answers or start the next section.
+  </div>
+);
+
+const QuestionNavigation = ({
+  currentQuestion,
+  questionIndex,
+  selectedOptions,
+  handleOptionChange,
+  handleReset,
+  handleBack,
+  handleNext,
+  handleReviewClick,
+  showLastQuestionMessage
+}) => (
+  <Question
+    question={currentQuestion}
+    questionIndex={questionIndex}
+    selectedOptions={selectedOptions}
+    handleOptionChange={handleOptionChange}
+    handleReset={handleReset}
+    handleBack={handleBack}
+    handleNext={handleNext}
+    handleReviewClick={handleReviewClick}
+    showLastQuestionMessage={showLastQuestionMessage}
+  />
+);
+
 const Home = () => {
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
   const [selectedOptions, setSelectedOptions] = useState({});
   const [questionStatuses, setQuestionStatuses] = useState({});
   const [reviewedQuestions, setReviewedQuestions] = useState({});
@@ -15,9 +60,12 @@ const Home = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [finalDialog, setFinalDialog] = useState(false); // New state for final dialog
+  const [finalDialog, setFinalDialog] = useState(false);
 
-  // Access Zustand store
+  const candidateId = useProgressStore((state) => state.candidateId);
+  const sqpId = useProgressStore((state) => state.sqpId);
+  const qpId = useProgressStore((state) => state.qpId);
+
   const { getData } = usePaperStore(state => ({
     getData: state.getData,
     getLoading: state.getLoading,
@@ -26,6 +74,7 @@ const Home = () => {
   const data = getData();
 
   useEffect(() => {
+    
     if (data && data.length > 0) {
       const currentSubject = data[currentSubjectIndex];
       if (currentSubject) {
@@ -48,19 +97,12 @@ const Home = () => {
     }
   };
 
-  const handleReviewClick = () => {
-    if (showLastQuestionMessage) {
-      return; // Optionally, you can show an alert or message here
-    } else {
-      moveToNextQuestion();
-    }
-  };
 
   const moveToNextQuestion = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
       const newQuestionStatuses = { ...questionStatuses };
-      const currentQuestionStatus = newQuestionStatuses[currentQuestionIndex];
+      
 
       if (selectedOptions[currentQuestionIndex] !== undefined) {
         if (selectedOptions[currentQuestionIndex] === '') {
@@ -146,7 +188,6 @@ const Home = () => {
 
   const handleDialogClose = (moveToNextSection) => {
     if (moveToNextSection) {
-      // Save last question status before moving to next section
       const currentSubject = data[currentSubjectIndex];
       const newQuestionStatuses = { ...questionStatuses };
       const lastQuestionIndex = currentSubject.questions.length - 1;
@@ -169,7 +210,6 @@ const Home = () => {
 
   const handleFinalDialogClose = (submitTest) => {
     if (submitTest) {
-      // Navigate to /result
       navigate('/result');
     } else {
       setFinalDialog(false);
@@ -189,12 +229,12 @@ const Home = () => {
               noq={currentSubject.NOQ}
               wtg={currentSubject.WTG}
               time_allocated={currentSubject.TIME_ALLOCATED}
-              isNegativeMarking={!!currentSubject.isNegativeMarking}
+              isNegativeMarking={!!currentSubject.IS_NEGATIVE_MARKING}
             />
             {currentQuestion && (
               <>
-                <Question
-                  question={currentQuestion}
+                <QuestionNavigation
+                  currentQuestion={currentQuestion}
                   questionIndex={currentQuestionIndex}
                   selectedOptions={selectedOptions}
                   handleOptionChange={handleOptionChange}
@@ -202,13 +242,9 @@ const Home = () => {
                   handleBack={handleBack}
                   handleNext={handleNext}
                   handleReviewClick={handleReview}
-                  showLastQuestionMessage={showLastQuestionMessage} // Pass this prop
+                  showLastQuestionMessage={showLastQuestionMessage}
                 />
-                {showLastQuestionMessage && (
-                  <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 text-center">
-                    This is the last question of this section. If you have time, you can review your answers or start the next section.
-                  </div>
-                )}
+                {showLastQuestionMessage && <LastQuestionMessage />}
               </>
             )}
           </>
@@ -220,28 +256,32 @@ const Home = () => {
         currentQuestionIndex={currentQuestionIndex}
         onJumpToQuestion={handleJumpToQuestion}
       />
+      {/* Add the ActivityTracker component */}
+      <ActivityTracker
+        candidateId={candidateId}
+        sqpId={sqpId}
+        qpId={qpId}
+        currentQuestion={currentQuestion}
+        selectedAnswer={selectedOptions[currentQuestionIndex]}
+        isAttempted={questionStatuses[currentQuestionIndex] === 'completed' || questionStatuses[currentQuestionIndex] === 'reviewed'}
+      />
+      <SectionDialog
+        open={openDialog}
+        onClose={handleDialogClose}
+        title="End of Section"
+        content="You have reached the end of this section. Would you like to move to the next section or continue reviewing the current section?"
+        primaryAction="Move to Next Section"
+        secondaryAction="Continue Reviewing"
+      />
 
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>End of Section</DialogTitle>
-        <DialogContent>
-          <p>You have reached the end of this section. Would you like to move to the next section or continue reviewing the current section?</p>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleDialogClose(true)} color="primary">Move to Next Section</Button>
-          <Button onClick={() => handleDialogClose(false)} color="secondary">Continue Reviewing</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={finalDialog} onClose={() => setFinalDialog(false)}>
-        <DialogTitle>Submit Test</DialogTitle>
-        <DialogContent>
-          <p>You have reached the last question of the last section. Would you like to submit the test or continue reviewing?</p>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleFinalDialogClose(true)} color="primary">Submit Test</Button>
-          <Button onClick={() => handleFinalDialogClose(false)} color="secondary">Continue Reviewing</Button>
-        </DialogActions>
-      </Dialog>
+      <SectionDialog
+        open={finalDialog}
+        onClose={handleFinalDialogClose}
+        title="Submit Test"
+        content="You have reached the last question of the last section. Would you like to submit the test or continue reviewing?"
+        primaryAction="Submit Test"
+        secondaryAction="Continue Reviewing"
+      />
     </div>
   );
 };
