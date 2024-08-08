@@ -62,6 +62,10 @@ const Home = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [finalDialog, setFinalDialog] = useState(false);
 
+  const [startTime, setStartTime] = useState(Date.now());
+  const [elapsedTime, setElapsedTime] = useState({});
+
+
   const candidateId = useProgressStore((state) => state.candidateId);
   const sqpId = useProgressStore((state) => state.sqpId);
   const qpId = useProgressStore((state) => state.qpId);
@@ -84,9 +88,10 @@ const Home = () => {
   }, [currentQuestionIndex, currentSubjectIndex, data]);
 
   const logQuestionDetails = (isAttempted, selectedAnswer) => {
-    //tracking user activity
     const currentSubject = data[currentSubjectIndex];
     const currentQuestion = currentSubject?.questions[currentQuestionIndex];
+    const timeSpent = Date.now() - startTime;
+  
     if (currentQuestion) {
       console.log('candidateId:', candidateId);
       console.log('sqpId:', sqpId);
@@ -94,9 +99,12 @@ const Home = () => {
       console.log('IS_ATTEMPED:', isAttempted);
       console.log('QUESTION_ID:', currentQuestion.QUESTION_ID);
       console.log('SELECTED_ANSWER:', selectedAnswer);
+      console.log('LAST_VIEW_TIME:', new Date(startTime).toLocaleTimeString());
+      console.log('ELAPSED_TIME:', timeSpent / 1000, 'seconds');
       console.log('===========================================');
     }
   };
+  
 
   const handleNext = () => {
     const isLastQuestion = currentQuestionIndex === data[currentSubjectIndex].questions.length - 1;
@@ -122,19 +130,22 @@ const Home = () => {
     if (currentSubject) {
       const newQuestionStatuses = [...questionStatuses];
       const currentQuestionStatus = newQuestionStatuses[currentQuestionIndex];
-
+  
       let selectedAnswer = selectedOptions[currentQuestionIndex] || '-1';
       let isAttempted = 0;
-
+  
       if (selectedOptions[currentQuestionIndex] !== undefined) {
         isAttempted = selectedOptions[currentQuestionIndex] === '' ? 0 : 1;
         newQuestionStatuses[currentQuestionIndex] = selectedOptions[currentQuestionIndex] === '' ? 'skipped' : 'completed';
       } else {
         newQuestionStatuses[currentQuestionIndex] = 'skipped';
       }
-
+  
       setQuestionStatuses(newQuestionStatuses);
-
+  
+      // Log details and update time tracking
+      logQuestionDetails(isAttempted, selectedAnswer);
+  
       if (currentQuestionIndex < currentSubject.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else if (currentSubjectIndex < data.length - 1) {
@@ -143,12 +154,12 @@ const Home = () => {
         setQuestionStatuses([]);
         setReviewedQuestions([]);
       }
-
-      // Log details if Next or Review button was pressed
-      logQuestionDetails(isAttempted, selectedAnswer);
+  
+      // Set the start time for the new question
+      setStartTime(Date.now());
     }
   };
-
+  
   const handleBack = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
@@ -178,22 +189,22 @@ const Home = () => {
     if (selectedOptions[currentQuestionIndex] === undefined || selectedOptions[currentQuestionIndex] === '') {
       return;
     }
-
+  
     const newReviewedQuestions = [...reviewedQuestions];
     newReviewedQuestions[currentQuestionIndex] = true;
     setReviewedQuestions(newReviewedQuestions);
-
+  
     const newQuestionStatuses = [...questionStatuses];
-
+  
     if (newQuestionStatuses[currentQuestionIndex] === 'skipped' || newQuestionStatuses[currentQuestionIndex] === 'completed') {
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
     } else if (!newQuestionStatuses[currentQuestionIndex]) {
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
     }
     setQuestionStatuses(newQuestionStatuses);
-
+  
     logQuestionDetails(2, selectedOptions[currentQuestionIndex]);
-
+  
     if (currentQuestionIndex < data[currentSubjectIndex].questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else if (currentSubjectIndex < data.length - 1) {
@@ -202,7 +213,11 @@ const Home = () => {
       setQuestionStatuses([]);
       setReviewedQuestions([]);
     }
+  
+    // Set the start time for the new question
+    setStartTime(Date.now());
   };
+  
 
   const handleJumpToQuestion = (questionIndex) => {
     setCurrentQuestionIndex(questionIndex);
