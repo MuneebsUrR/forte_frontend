@@ -52,9 +52,9 @@ const QuestionNavigation = ({
 
 const Home = () => {
   const navigate = useNavigate();
-  const [selectedOptions, setSelectedOptions] = useState({});
-  const [questionStatuses, setQuestionStatuses] = useState({});
-  const [reviewedQuestions, setReviewedQuestions] = useState({});
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [questionStatuses, setQuestionStatuses] = useState([]);
+  const [reviewedQuestions, setReviewedQuestions] = useState([]);
   const [currentSubjectIndex, setCurrentSubjectIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
@@ -73,22 +73,11 @@ const Home = () => {
   const data = getData();
 
   useEffect(() => {
-    
     if (data && data.length > 0) {
       const currentSubject = data[currentSubjectIndex];
       if (currentSubject) {
         const isLastQuestion = currentQuestionIndex === currentSubject.questions.length - 1;
         setShowLastQuestionMessage(isLastQuestion);
-      }
-    }
-  }, [currentQuestionIndex, currentSubjectIndex, data]);
-
-  useEffect(() => {
-    if (data && currentSubjectIndex < data.length) {
-      const currentSubject = data[currentSubjectIndex];
-      const currentQuestion = currentSubject.questions[currentQuestionIndex];
-      if (currentQuestion) {
-        console.log('Current question ID:', currentQuestion.QUESTION_ID);
       }
     }
   }, [currentQuestionIndex, currentSubjectIndex, data]);
@@ -115,19 +104,26 @@ const Home = () => {
   const moveToNextQuestion = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
-      const newQuestionStatuses = { ...questionStatuses };
+      const newQuestionStatuses = [...questionStatuses];
       const currentQuestionStatus = newQuestionStatuses[currentQuestionIndex];
 
       if (selectedOptions[currentQuestionIndex] !== undefined) {
         if (selectedOptions[currentQuestionIndex] === '') {
           newQuestionStatuses[currentQuestionIndex] = 'skipped';
+          console.log('IS_ATTEMPED:', 0);
         } else if (reviewedQuestions[currentQuestionIndex]) {
           newQuestionStatuses[currentQuestionIndex] = 'completed';
+          console.log('IS_ATTEMPED:', 1);
         } else {
           newQuestionStatuses[currentQuestionIndex] = 'completed';
+          console.log('IS_ATTEMPED:', 1);
         }
+
+        console.log('QUESTION_ID:', currentQuestion.QUESTION_ID);
+        console.log('SELECTED_ANSWER:', selectedOptions[currentQuestionIndex]);
       } else {
         newQuestionStatuses[currentQuestionIndex] = 'skipped';
+        console.log('IS_ATTEMPED:', 0);
       }
 
       setQuestionStatuses(newQuestionStatuses);
@@ -137,8 +133,8 @@ const Home = () => {
       } else if (currentSubjectIndex < data.length - 1) {
         setCurrentSubjectIndex(currentSubjectIndex + 1);
         setCurrentQuestionIndex(0);
-        setQuestionStatuses({});
-        setReviewedQuestions({});
+        setQuestionStatuses([]);
+        setReviewedQuestions([]);
       }
     }
   };
@@ -157,13 +153,15 @@ const Home = () => {
   };
 
   const handleOptionChange = (e) => {
-    const newSelectedOptions = { ...selectedOptions };
+    const newSelectedOptions = [...selectedOptions];
     newSelectedOptions[currentQuestionIndex] = e.target.value;
     setSelectedOptions(newSelectedOptions);
+    console.log('SELECTED_ANSWER:', e.target.value);
   };
+  
 
   const handleReset = () => {
-    const newSelectedOptions = { ...selectedOptions };
+    const newSelectedOptions = [...selectedOptions];
     newSelectedOptions[currentQuestionIndex] = '';
     setSelectedOptions(newSelectedOptions);
   };
@@ -173,11 +171,11 @@ const Home = () => {
       return;
     }
 
-    const newReviewedQuestions = { ...reviewedQuestions };
+    const newReviewedQuestions = [...reviewedQuestions];
     newReviewedQuestions[currentQuestionIndex] = true;
     setReviewedQuestions(newReviewedQuestions);
 
-    const newQuestionStatuses = { ...questionStatuses };
+    const newQuestionStatuses = [...questionStatuses];
 
     if (newQuestionStatuses[currentQuestionIndex] === 'skipped' || newQuestionStatuses[currentQuestionIndex] === 'completed') {
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
@@ -186,13 +184,17 @@ const Home = () => {
     }
     setQuestionStatuses(newQuestionStatuses);
 
+    console.log('QUESTION_ID:', currentQuestion.QUESTION_ID);
+    console.log('SELECTED_ANSWER:', selectedOptions[currentQuestionIndex]);
+    console.log('IS_ATTEMPED:', 2); 
+
     if (currentQuestionIndex < data[currentSubjectIndex].questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else if (currentSubjectIndex < data.length - 1) {
       setCurrentSubjectIndex(currentSubjectIndex + 1);
       setCurrentQuestionIndex(0);
-      setQuestionStatuses({});
-      setReviewedQuestions({});
+      setQuestionStatuses([]);
+      setReviewedQuestions([]);
     }
   };
 
@@ -203,17 +205,23 @@ const Home = () => {
   const handleDialogClose = (moveToNextSection) => {
     if (moveToNextSection) {
       const currentSubject = data[currentSubjectIndex];
-      const newQuestionStatuses = { ...questionStatuses };
+      const newQuestionStatuses = [...questionStatuses];
       const lastQuestionIndex = currentSubject.questions.length - 1;
 
       if (selectedOptions[lastQuestionIndex] !== undefined) {
         if (selectedOptions[lastQuestionIndex] === '') {
           newQuestionStatuses[lastQuestionIndex] = 'skipped';
+          console.log('IS_ATTEMPED:', 0);
         } else {
           newQuestionStatuses[lastQuestionIndex] = 'completed';
+          console.log('IS_ATTEMPED:', 1);
         }
+
+        console.log('QUESTION_ID:', currentSubject.questions[lastQuestionIndex].QUESTION_ID);
+        console.log('SELECTED_ANSWER:', selectedOptions[lastQuestionIndex]);
       } else {
         newQuestionStatuses[lastQuestionIndex] = 'skipped';
+        console.log('IS_ATTEMPED:', 0);
       }
 
       setQuestionStatuses(newQuestionStatuses);
@@ -230,8 +238,8 @@ const Home = () => {
     }
   };
 
-  const currentSubject = data ? data[currentSubjectIndex] : null;
-  const currentQuestion = currentSubject ? currentSubject.questions[currentQuestionIndex] : null;
+  const currentSubject = data[currentSubjectIndex];
+  const currentQuestion = currentSubject?.questions[currentQuestionIndex];
 
   return (
     <div className="flex">
@@ -244,45 +252,50 @@ const Home = () => {
               wtg={currentSubject.WTG}
               time_allocated={currentSubject.TIME_ALLOCATED}
               isNegativeMarking={!!currentSubject.IS_NEGATIVE_MARKING}
-              timeTaken={0}
             />
             {currentQuestion && (
-              <QuestionNavigation
-                currentQuestion={currentQuestion}
-                questionIndex={currentQuestionIndex}
-                selectedOptions={selectedOptions}
-                handleOptionChange={handleOptionChange}
-                handleReset={handleReset}
-                handleBack={handleBack}
-                handleNext={handleNext}
-                handleReviewClick={handleReviewClick}
-                showLastQuestionMessage={showLastQuestionMessage}
-              />
+              <>
+                <QuestionNavigation
+                  currentQuestion={currentQuestion}
+                  questionIndex={currentQuestionIndex}
+                  selectedOptions={selectedOptions}
+                  handleOptionChange={handleOptionChange}
+                  handleReset={handleReset}
+                  handleBack={handleBack}
+                  handleNext={handleNext}
+                  handleReviewClick={handleReview}
+                  showLastQuestionMessage={showLastQuestionMessage}
+                />
+                {showLastQuestionMessage && <LastQuestionMessage />}
+              </>
             )}
           </>
         )}
       </div>
       <Sidebar
         questionStatuses={questionStatuses}
+        totalQuestions={currentSubject ? currentSubject.questions.length : 0}
+        currentQuestionIndex={currentQuestionIndex}
         onJumpToQuestion={handleJumpToQuestion}
       />
+
       <SectionDialog
         open={openDialog}
         onClose={handleDialogClose}
-        title="Last Question"
-        content="This is the last question of this section. Do you want to proceed to the next section?"
-        primaryAction="Yes"
-        secondaryAction="No"
+        title="End of Section"
+        content="You have reached the end of this section. Would you like to move to the next section or continue reviewing the current section?"
+        primaryAction="Move to Next Section"
+        secondaryAction="Continue Reviewing"
       />
+
       <SectionDialog
         open={finalDialog}
         onClose={handleFinalDialogClose}
-        title="Final Question"
-        content="You have reached the end of the test. Do you want to submit your test now?"
-        primaryAction="Submit"
-        secondaryAction="Cancel"
+        title="Submit Test"
+        content="You have reached the last question of the last section. Would you like to submit the test or continue reviewing?"
+        primaryAction="Submit Test"
+        secondaryAction="Continue Reviewing"
       />
-      {showLastQuestionMessage && <LastQuestionMessage />}
     </div>
   );
 };
