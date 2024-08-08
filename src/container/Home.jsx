@@ -5,6 +5,7 @@ import useProgressStore from '../Hooks/ProgressStore';
 import Info from '../components/Info';
 import Question from '../components/Questions';
 import Sidebar from '../components/Sidebar';
+import { logQuestionDetails } from '../utils/logUtils';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
 
 const SectionDialog = ({ open, onClose, title, content, primaryAction, secondaryAction }) => (
@@ -27,16 +28,16 @@ const LastQuestionMessage = () => (
   </div>
 );
 
-const QuestionNavigation = ({ 
-  currentQuestion, 
-  questionIndex, 
-  selectedOptions, 
-  handleOptionChange, 
-  handleReset, 
-  handleBack, 
-  handleNext, 
-  handleReviewClick, 
-  showLastQuestionMessage 
+const QuestionNavigation = ({
+  currentQuestion,
+  questionIndex,
+  selectedOptions,
+  handleOptionChange,
+  handleReset,
+  handleBack,
+  handleNext,
+  handleReviewClick,
+  showLastQuestionMessage
 }) => (
   <Question
     question={currentQuestion}
@@ -63,7 +64,6 @@ const Home = () => {
   const [finalDialog, setFinalDialog] = useState(false);
 
   const [startTime, setStartTime] = useState(Date.now());
-  const [elapsedTime, setElapsedTime] = useState({});
 
 
   const candidateId = useProgressStore((state) => state.candidateId);
@@ -87,24 +87,7 @@ const Home = () => {
     }
   }, [currentQuestionIndex, currentSubjectIndex, data]);
 
-  const logQuestionDetails = (isAttempted, selectedAnswer) => {
-    const currentSubject = data[currentSubjectIndex];
-    const currentQuestion = currentSubject?.questions[currentQuestionIndex];
-    const timeSpent = Date.now() - startTime;
-  
-    if (currentQuestion) {
-      console.log('candidateId:', candidateId);
-      console.log('sqpId:', sqpId);
-      console.log('qpId:', qpId);
-      console.log('IS_ATTEMPED:', isAttempted);
-      console.log('QUESTION_ID:', currentQuestion.QUESTION_ID);
-      console.log('SELECTED_ANSWER:', selectedAnswer);
-      console.log('LAST_VIEW_TIME:', new Date(startTime).toLocaleTimeString());
-      console.log('ELAPSED_TIME:', timeSpent / 1000, 'seconds');
-      console.log('===========================================');
-    }
-  };
-  
+
 
   const handleNext = () => {
     const isLastQuestion = currentQuestionIndex === data[currentSubjectIndex].questions.length - 1;
@@ -119,33 +102,28 @@ const Home = () => {
     }
   };
 
-  const handleReviewClick = () => {
-    if (!showLastQuestionMessage) {
-      moveToNextQuestion();
-    }
-  };
+
 
   const moveToNextQuestion = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
       const newQuestionStatuses = [...questionStatuses];
-      const currentQuestionStatus = newQuestionStatuses[currentQuestionIndex];
-  
-      let selectedAnswer = selectedOptions[currentQuestionIndex] || '-1';
+
       let isAttempted = 0;
-  
+
       if (selectedOptions[currentQuestionIndex] !== undefined) {
         isAttempted = selectedOptions[currentQuestionIndex] === '' ? 0 : 1;
         newQuestionStatuses[currentQuestionIndex] = selectedOptions[currentQuestionIndex] === '' ? 'skipped' : 'completed';
       } else {
         newQuestionStatuses[currentQuestionIndex] = 'skipped';
       }
-  
+
       setQuestionStatuses(newQuestionStatuses);
-  
+
       // Log details and update time tracking
-      logQuestionDetails(isAttempted, selectedAnswer);
-  
+      logQuestionDetails(candidateId, sqpId, qpId, startTime, currentSubjectIndex, currentQuestionIndex, selectedOptions, data);
+
+
       if (currentQuestionIndex < currentSubject.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else if (currentSubjectIndex < data.length - 1) {
@@ -154,12 +132,12 @@ const Home = () => {
         setQuestionStatuses([]);
         setReviewedQuestions([]);
       }
-  
+
       // Set the start time for the new question
       setStartTime(Date.now());
     }
   };
-  
+
   const handleBack = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
@@ -189,22 +167,25 @@ const Home = () => {
     if (selectedOptions[currentQuestionIndex] === undefined || selectedOptions[currentQuestionIndex] === '') {
       return;
     }
-  
+
     const newReviewedQuestions = [...reviewedQuestions];
     newReviewedQuestions[currentQuestionIndex] = true;
     setReviewedQuestions(newReviewedQuestions);
-  
+
     const newQuestionStatuses = [...questionStatuses];
-  
+
     if (newQuestionStatuses[currentQuestionIndex] === 'skipped' || newQuestionStatuses[currentQuestionIndex] === 'completed') {
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
     } else if (!newQuestionStatuses[currentQuestionIndex]) {
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
     }
     setQuestionStatuses(newQuestionStatuses);
-  
-    logQuestionDetails(2, selectedOptions[currentQuestionIndex]);
-  
+
+
+    // Log details and update time tracking
+    logQuestionDetails(candidateId, sqpId, qpId, startTime, currentSubjectIndex, currentQuestionIndex, selectedOptions, data);
+
+
     if (currentQuestionIndex < data[currentSubjectIndex].questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else if (currentSubjectIndex < data.length - 1) {
@@ -213,11 +194,11 @@ const Home = () => {
       setQuestionStatuses([]);
       setReviewedQuestions([]);
     }
-  
+
     // Set the start time for the new question
     setStartTime(Date.now());
   };
-  
+
 
   const handleJumpToQuestion = (questionIndex) => {
     setCurrentQuestionIndex(questionIndex);
@@ -228,9 +209,6 @@ const Home = () => {
       const currentSubject = data[currentSubjectIndex];
       const newQuestionStatuses = [...questionStatuses];
       const lastQuestionIndex = currentSubject.questions.length - 1;
-
-      const selectedAnswer = selectedOptions[lastQuestionIndex] || '-1';
-      const isAttempted = selectedOptions[lastQuestionIndex] === '' ? 0 : 1;
 
       if (selectedOptions[lastQuestionIndex] !== undefined) {
         newQuestionStatuses[lastQuestionIndex] = selectedOptions[lastQuestionIndex] === '' ? 'skipped' : 'completed';
