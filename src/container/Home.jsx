@@ -14,11 +14,12 @@ const SectionDialog = ({ open, onClose, title, content, primaryAction, secondary
       <p>{content}</p>
     </DialogContent>
     <DialogActions>
-      <Button onClick={() => onClose(true)} color="primary">{primaryAction}</Button>
-      <Button onClick={() => onClose(false)} color="secondary">{secondaryAction}</Button>
+      <Button onClick={() => onClose(true)} color="primary" aria-label={primaryAction}>{primaryAction}</Button>
+      <Button onClick={() => onClose(false)} color="secondary" aria-label={secondaryAction}>{secondaryAction}</Button>
     </DialogActions>
   </Dialog>
 );
+
 
 const LastQuestionMessage = () => (
   <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 text-center">
@@ -82,6 +83,16 @@ const Home = () => {
     }
   }, [currentQuestionIndex, currentSubjectIndex, data]);
 
+  const logQuestionDetails = (isAttempted, selectedAnswer) => {
+    const currentSubject = data[currentSubjectIndex];
+    const currentQuestion = currentSubject?.questions[currentQuestionIndex];
+    if (currentQuestion) {
+      console.log('IS_ATTEMPED:', isAttempted);
+      console.log('QUESTION_ID:', currentQuestion.QUESTION_ID);
+      console.log('SELECTED_ANSWER:', selectedAnswer);
+    }
+  };
+
   const handleNext = () => {
     const isLastQuestion = currentQuestionIndex === data[currentSubjectIndex].questions.length - 1;
     const isLastSection = currentSubjectIndex === data.length - 1;
@@ -107,23 +118,14 @@ const Home = () => {
       const newQuestionStatuses = [...questionStatuses];
       const currentQuestionStatus = newQuestionStatuses[currentQuestionIndex];
 
-      if (selectedOptions[currentQuestionIndex] !== undefined) {
-        if (selectedOptions[currentQuestionIndex] === '') {
-          newQuestionStatuses[currentQuestionIndex] = 'skipped';
-          console.log('IS_ATTEMPED:', 0);
-        } else if (reviewedQuestions[currentQuestionIndex]) {
-          newQuestionStatuses[currentQuestionIndex] = 'completed';
-          console.log('IS_ATTEMPED:', 1);
-        } else {
-          newQuestionStatuses[currentQuestionIndex] = 'completed';
-          console.log('IS_ATTEMPED:', 1);
-        }
+      let selectedAnswer = selectedOptions[currentQuestionIndex] || '-1';
+      let isAttempted = 0;
 
-        console.log('QUESTION_ID:', currentQuestion.QUESTION_ID);
-        console.log('SELECTED_ANSWER:', selectedOptions[currentQuestionIndex]);
+      if (selectedOptions[currentQuestionIndex] !== undefined) {
+        isAttempted = selectedOptions[currentQuestionIndex] === '' ? 0 : 1;
+        newQuestionStatuses[currentQuestionIndex] = selectedOptions[currentQuestionIndex] === '' ? 'skipped' : 'completed';
       } else {
         newQuestionStatuses[currentQuestionIndex] = 'skipped';
-        console.log('IS_ATTEMPED:', 0);
       }
 
       setQuestionStatuses(newQuestionStatuses);
@@ -136,6 +138,9 @@ const Home = () => {
         setQuestionStatuses([]);
         setReviewedQuestions([]);
       }
+
+      // Log details if Next or Review button was pressed
+      logQuestionDetails(isAttempted, selectedAnswer);
     }
   };
 
@@ -156,9 +161,7 @@ const Home = () => {
     const newSelectedOptions = [...selectedOptions];
     newSelectedOptions[currentQuestionIndex] = e.target.value;
     setSelectedOptions(newSelectedOptions);
-    console.log('SELECTED_ANSWER:', e.target.value);
   };
-  
 
   const handleReset = () => {
     const newSelectedOptions = [...selectedOptions];
@@ -184,9 +187,7 @@ const Home = () => {
     }
     setQuestionStatuses(newQuestionStatuses);
 
-    console.log('QUESTION_ID:', currentQuestion.QUESTION_ID);
-    console.log('SELECTED_ANSWER:', selectedOptions[currentQuestionIndex]);
-    console.log('IS_ATTEMPED:', 2); 
+    logQuestionDetails(2, selectedOptions[currentQuestionIndex]);
 
     if (currentQuestionIndex < data[currentSubjectIndex].questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -208,20 +209,13 @@ const Home = () => {
       const newQuestionStatuses = [...questionStatuses];
       const lastQuestionIndex = currentSubject.questions.length - 1;
 
-      if (selectedOptions[lastQuestionIndex] !== undefined) {
-        if (selectedOptions[lastQuestionIndex] === '') {
-          newQuestionStatuses[lastQuestionIndex] = 'skipped';
-          console.log('IS_ATTEMPED:', 0);
-        } else {
-          newQuestionStatuses[lastQuestionIndex] = 'completed';
-          console.log('IS_ATTEMPED:', 1);
-        }
+      const selectedAnswer = selectedOptions[lastQuestionIndex] || '-1';
+      const isAttempted = selectedOptions[lastQuestionIndex] === '' ? 0 : 1;
 
-        console.log('QUESTION_ID:', currentSubject.questions[lastQuestionIndex].QUESTION_ID);
-        console.log('SELECTED_ANSWER:', selectedOptions[lastQuestionIndex]);
+      if (selectedOptions[lastQuestionIndex] !== undefined) {
+        newQuestionStatuses[lastQuestionIndex] = selectedOptions[lastQuestionIndex] === '' ? 'skipped' : 'completed';
       } else {
         newQuestionStatuses[lastQuestionIndex] = 'skipped';
-        console.log('IS_ATTEMPED:', 0);
       }
 
       setQuestionStatuses(newQuestionStatuses);

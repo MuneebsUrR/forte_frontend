@@ -33,14 +33,15 @@ const Question = ({
           <Typography className='ml-4 mr-4 mb-4' dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(question?.QUESTION_TEXT) }} />
         </MathJax>
         {question.answer_choices.map((choice, index) => {
-          const choiceId = `choice-${index}`;
+          // Use index directly as choiceId
+          const choiceId = index.toString(); // Ensure choiceId is a string
           return (
             <label key={index} htmlFor={choiceId} className="flex items-center cursor-pointer mb-2">
               <Radio
                 name="options"
                 id={choiceId}
                 checked={selectedOptions[questionIndex] === choiceId}
-                onChange={handleOptionChange}
+                onChange={(e) => handleOptionChange(e, choiceId)} // Make sure handleOptionChange works with string values
                 value={choiceId}
               />
               <Typography className='ml-2' dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(choice.ANS_CHOICE_TEXT) }} />
