@@ -73,12 +73,22 @@ const Home = () => {
   const data = getData();
 
   useEffect(() => {
-    console.log('Fetched data:', data);
+    
     if (data && data.length > 0) {
       const currentSubject = data[currentSubjectIndex];
       if (currentSubject) {
         const isLastQuestion = currentQuestionIndex === currentSubject.questions.length - 1;
         setShowLastQuestionMessage(isLastQuestion);
+      }
+    }
+  }, [currentQuestionIndex, currentSubjectIndex, data]);
+
+  useEffect(() => {
+    if (data && currentSubjectIndex < data.length) {
+      const currentSubject = data[currentSubjectIndex];
+      const currentQuestion = currentSubject.questions[currentQuestionIndex];
+      if (currentQuestion) {
+        console.log('Current question ID:', currentQuestion.QUESTION_ID);
       }
     }
   }, [currentQuestionIndex, currentSubjectIndex, data]);
@@ -234,50 +244,45 @@ const Home = () => {
               wtg={currentSubject.WTG}
               time_allocated={currentSubject.TIME_ALLOCATED}
               isNegativeMarking={!!currentSubject.IS_NEGATIVE_MARKING}
+              timeTaken={0}
             />
             {currentQuestion && (
-              <>
-                <QuestionNavigation
-                  currentQuestion={currentQuestion}
-                  questionIndex={currentQuestionIndex}
-                  selectedOptions={selectedOptions}
-                  handleOptionChange={handleOptionChange}
-                  handleReset={handleReset}
-                  handleBack={handleBack}
-                  handleNext={handleNext}
-                  handleReviewClick={handleReview}
-                  showLastQuestionMessage={showLastQuestionMessage}
-                />
-                {showLastQuestionMessage && <LastQuestionMessage />}
-              </>
+              <QuestionNavigation
+                currentQuestion={currentQuestion}
+                questionIndex={currentQuestionIndex}
+                selectedOptions={selectedOptions}
+                handleOptionChange={handleOptionChange}
+                handleReset={handleReset}
+                handleBack={handleBack}
+                handleNext={handleNext}
+                handleReviewClick={handleReviewClick}
+                showLastQuestionMessage={showLastQuestionMessage}
+              />
             )}
           </>
         )}
       </div>
       <Sidebar
         questionStatuses={questionStatuses}
-        totalQuestions={currentSubject ? currentSubject.questions.length : 0}
-        currentQuestionIndex={currentQuestionIndex}
         onJumpToQuestion={handleJumpToQuestion}
       />
-
       <SectionDialog
         open={openDialog}
         onClose={handleDialogClose}
-        title="End of Section"
-        content="You have reached the end of this section. Would you like to move to the next section or continue reviewing the current section?"
-        primaryAction="Move to Next Section"
-        secondaryAction="Continue Reviewing"
+        title="Last Question"
+        content="This is the last question of this section. Do you want to proceed to the next section?"
+        primaryAction="Yes"
+        secondaryAction="No"
       />
-
       <SectionDialog
         open={finalDialog}
         onClose={handleFinalDialogClose}
-        title="Submit Test"
-        content="You have reached the last question of the last section. Would you like to submit the test or continue reviewing?"
-        primaryAction="Submit Test"
-        secondaryAction="Continue Reviewing"
+        title="Final Question"
+        content="You have reached the end of the test. Do you want to submit your test now?"
+        primaryAction="Submit"
+        secondaryAction="Cancel"
       />
+      {showLastQuestionMessage && <LastQuestionMessage />}
     </div>
   );
 };
