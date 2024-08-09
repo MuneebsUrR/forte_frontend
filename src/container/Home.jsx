@@ -102,18 +102,22 @@ const Home = () => {
     }
   };
 
-
-
   const moveToNextQuestion = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
       const newQuestionStatuses = [...questionStatuses];
-
-      let isAttempted = 0;
+      let isAttempted = -1; // Default to skipped
+      let selectedAnswer = '-1'; // Default selected answer for skipped questions
 
       if (selectedOptions[currentQuestionIndex] !== undefined) {
-        isAttempted = selectedOptions[currentQuestionIndex] === '' ? 0 : 1;
-        newQuestionStatuses[currentQuestionIndex] = selectedOptions[currentQuestionIndex] === '' ? 'skipped' : 'completed';
+        if (newQuestionStatuses[currentQuestionIndex] === 'reviewed') {
+          isAttempted = 2; // Mark as reviewed
+          selectedAnswer = selectedOptions[currentQuestionIndex]; // Keep the selected answer
+        } else {
+          isAttempted = 1; // Mark as completed
+          selectedAnswer = selectedOptions[currentQuestionIndex]; // Set the selected answer
+        }
+        newQuestionStatuses[currentQuestionIndex] = 'completed';
       } else {
         newQuestionStatuses[currentQuestionIndex] = 'skipped';
       }
@@ -121,8 +125,7 @@ const Home = () => {
       setQuestionStatuses(newQuestionStatuses);
 
       // Log details and update time tracking
-      logQuestionDetails(candidateId, sqpId, qpId, startTime, currentSubjectIndex, currentQuestionIndex, selectedOptions, data);
-
+      logQuestionDetails(candidateId, sqpId, qpId, startTime, currentSubjectIndex, currentQuestionIndex, selectedOptions, isAttempted, data);
 
       if (currentQuestionIndex < currentSubject.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -137,6 +140,7 @@ const Home = () => {
       setStartTime(Date.now());
     }
   };
+
 
   const handleBack = () => {
     if (currentQuestionIndex > 0) {
@@ -173,18 +177,16 @@ const Home = () => {
     setReviewedQuestions(newReviewedQuestions);
 
     const newQuestionStatuses = [...questionStatuses];
-
-    if (newQuestionStatuses[currentQuestionIndex] === 'skipped' || newQuestionStatuses[currentQuestionIndex] === 'completed') {
-      newQuestionStatuses[currentQuestionIndex] = 'reviewed';
-    } else if (!newQuestionStatuses[currentQuestionIndex]) {
+    if (!newQuestionStatuses[currentQuestionIndex] || newQuestionStatuses[currentQuestionIndex] === 'skipped' || newQuestionStatuses[currentQuestionIndex] === 'completed') {
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
     }
     setQuestionStatuses(newQuestionStatuses);
 
+    const isAttempted = 2; // Mark as reviewed
+    const selectedAnswer = selectedOptions[currentQuestionIndex]; 
 
     // Log details and update time tracking
-    logQuestionDetails(candidateId, sqpId, qpId, startTime, currentSubjectIndex, currentQuestionIndex, selectedOptions, data);
-
+    logQuestionDetails(candidateId, sqpId, qpId, startTime, currentSubjectIndex, currentQuestionIndex, selectedOptions, isAttempted, data);
 
     if (currentQuestionIndex < data[currentSubjectIndex].questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -198,6 +200,8 @@ const Home = () => {
     // Set the start time for the new question
     setStartTime(Date.now());
   };
+
+
 
 
   const handleJumpToQuestion = (questionIndex) => {
