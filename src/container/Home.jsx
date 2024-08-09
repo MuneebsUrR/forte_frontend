@@ -183,7 +183,7 @@ const Home = () => {
     setQuestionStatuses(newQuestionStatuses);
 
     const isAttempted = 2; // Mark as reviewed
-    const selectedAnswer = selectedOptions[currentQuestionIndex]; 
+    const selectedAnswer = selectedOptions[currentQuestionIndex];
 
     // Log details and update time tracking
     logQuestionDetails(candidateId, sqpId, qpId, startTime, currentSubjectIndex, currentQuestionIndex, selectedOptions, isAttempted, data);
