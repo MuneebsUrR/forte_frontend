@@ -237,6 +237,40 @@ const Home = () => {
   const currentSubject = data[currentSubjectIndex];
   const currentQuestion = currentSubject?.questions[currentQuestionIndex];
 
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      const message = "Are you sure you want to leave? Your progress will be lost.";
+      event.returnValue = message; // Standard way for most browsers
+      return message; // Some browsers require this to display the message
+    };
+
+    const handlePopState = (event) => {
+      event.preventDefault();
+      const message = "Are you sure you want to leave? Your progress will be lost.";
+      if (window.confirm(message)) {
+        navigate(-1); // Only navigate back if the user confirms
+      } else {
+        window.history.pushState(null, document.title, window.location.href); // Prevent navigation
+      }
+    };
+
+    // Prevent refresh and customize the prompt message
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Prevent backward navigation
+    window.history.pushState(null, document.title, window.location.href);
+    window.addEventListener('popstate', handlePopState);
+
+    // Cleanup function to remove event listeners
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [navigate]);
+
+
+
   return (
     <div className="flex">
       <div className="flex-1 p-4">
