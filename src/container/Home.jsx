@@ -109,16 +109,18 @@ const Home = () => {
       let isAttempted = -1; // Default to skipped
       let selectedAnswer = '-1'; // Default selected answer for skipped questions
 
-      if (selectedOptions[currentQuestionIndex] !== undefined) {
+      // Check if a choice was made for the current question
+      if (selectedOptions[currentQuestionIndex] !== undefined && selectedOptions[currentQuestionIndex] !== '') {
+        // Check if the question was reviewed
         if (newQuestionStatuses[currentQuestionIndex] === 'reviewed') {
           isAttempted = 2; // Mark as reviewed
-          selectedAnswer = selectedOptions[currentQuestionIndex]; // Keep the selected answer
         } else {
           isAttempted = 1; // Mark as completed
-          selectedAnswer = selectedOptions[currentQuestionIndex]; // Set the selected answer
         }
+        selectedAnswer = selectedOptions[currentQuestionIndex]; // Set the selected answer
         newQuestionStatuses[currentQuestionIndex] = 'completed';
       } else {
+        // If no choice was made, mark as skipped
         newQuestionStatuses[currentQuestionIndex] = 'skipped';
       }
 
@@ -139,7 +141,8 @@ const Home = () => {
       // Set the start time for the new question
       setStartTime(Date.now());
     }
-  };
+};
+
 
 
   const handleBack = () => {
@@ -272,7 +275,7 @@ const Home = () => {
 
 
   return (
-    <div className="flex">
+    <div className="flex h-[80vh]">
       <div className="flex-1 p-4">
         {currentSubject && (
           <>
