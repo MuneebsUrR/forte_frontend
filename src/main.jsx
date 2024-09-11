@@ -1,17 +1,18 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom';
-import App from './App.jsx'
-import './index.css'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter as Router } from "react-router-dom";
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+import App from "./App.jsx";
+import "./index.css";
+import { MathJaxContext } from "better-react-mathjax";
 
-    <BrowserRouter>
-      <React.StrictMode>
-        <div className='bg-black text-white'>
-        <App />
-        </div>
-      </React.StrictMode>
-    </BrowserRouter>
-
-)
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <Router>
+      <MathJaxContext>
+      <App />
+      </MathJaxContext>
+    </Router>
+  
+  </React.StrictMode>
+);

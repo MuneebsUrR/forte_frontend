@@ -1,118 +1,247 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../Style/instruction.css';
-import FastNuLogo from '../assets/FAST.png';
-import FastLogo from '../assets/FAST2.png';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Container,
+  Typography,
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  useTheme,
+  CircularProgress,
+} from "@mui/material";
+import Cookies from "universal-cookie";
+import useLoginStore from "../Hooks/loginStore";
+import usePaperStore from "../Hooks/paperstore";
+import useProgressStore from "../Hooks/ProgressStore";
 
-const Instruction = () => {
-  const [isChecked, setIsChecked] = useState(false);
-  const navigate = useNavigate();
+const Header = () => (
+  <Box textAlign="center" my={8}>
+    <Typography variant="h4" component="h1">
+      Welcome to FAST NUCES Admission Test
+    </Typography>
+  </Box>
+);
 
-  const handleCheckboxChange = (e) => {
-    setIsChecked(e.target.checked);
-  };
+const CandidateInfo = ({ loginResult }) => (
+  <Box my={4}>
+    <Typography variant="h6">Candidate Information:</Typography>
+    <Typography>
+      <strong>Candidate ID:</strong> {loginResult?.user?.CANDIDATE_ID || "N/A"}
+    </Typography>
+    <Typography>Test Center:</Typography>
+    <Typography>Test Session:</Typography>
+    <Typography>Programme:</Typography>
+  </Box>
+);
 
-  const handleStartTest = () => {
-    if (isChecked) {
-      navigate('/home');
-    }
-  };
+const GeneralInstructions = () => (
+  <Box my={4}>
+    <Typography variant="h6">GENERAL INSTRUCTIONS:</Typography>
+    <Box component="ul" pl={5} className="list-disc">
+      <Typography component="li">
+        Calculators, Papers, Cellular Phones and CDs are not allowed in the test
+        area.
+      </Typography>
+      <Typography component="li">
+        Do not share your Verification Slip (with your test ID and password) to
+        any other candidate, anyone found doing so will be disqualified from the
+        test.
+      </Typography>
+      <Typography component="li">
+        After logging in once your login name and password, and the system has
+        logged you in the test, you are only allowed to attempt the test once.
+      </Typography>
+      <Typography component="li">
+        If you try to log in later, a warning message will be displayed on your
+        screen. If this message appears on your screen more than once you can be
+        disqualified from the admission test.
+      </Typography>
+      <Typography component="li">
+        Anyone found with more than one login session for the Admission Test
+        will be disqualified from the test and removed from the list of
+        candidates for admission.
+      </Typography>
+      <Typography component="li">
+        During the admission test, use of unfair means or communication with any
+        other candidate in any form will lead to disqualification and removal
+        from the list of candidates for admission.
+      </Typography>
+      <Typography component="li">
+        Write your rough work done on the Rough Sheet attached with your
+        Verification Slip.
+      </Typography>
+      <Typography component="li">
+        If you need any help, click on the help button to indicate that you have
+        read and understood the instructions above.
+      </Typography>
+      <Typography component="li">
+        Whenever you are ready, click on the Start Test button below.
+      </Typography>
+      <Typography component="li">
+        The remaining time left on your screen is the Time Left for that
+        particular section only.
+      </Typography>
+      <Typography component="li">
+        Along with showing Total Questions, displayed on your screen, is the
+        number of questions in that particular section.
+      </Typography>
+    </Box>
+  </Box>
+);
+
+const TestSummary = ({ data }) => {
+  if (!data || data.length === 0) {
+    return <Typography>No data available</Typography>;
+  }
 
   return (
-    <div className="font-sans max-w-4xl mx-auto p-4 bg-black text-white">
-      <div className="flex justify-between items-center mb-4">
-        <img src={FastNuLogo} alt="FAST-NU Logo" className="w-12 h-12" />
-        <img src={FastLogo} alt="FAST Logo" className="w-12 h-12" />
-      </div>
-      
-      <div className="admission-test">
-        <h2><strong>Candidate Information:</strong></h2>
-        <div className="card candidate-info">
-          <h2>Candidate ID: </h2>
-          <p>Test Center:   </p>
-          <p>Test Session:  </p>
-          <p>Programme:     </p>
-        </div>
-        
-        <h1><strong>Welcome to FAST NUCES Admission Test:</strong> </h1>
-        
-        <div className="card instructions">
-          <h2><strong>GENERAL INSTRUCTIONS.</strong></h2>
-          <ul>
-          <li>• Calculators, Pagers, Cellular Phones and CDs are not allowed in the test area.</li>
-          <li>• Do not show your Verification Slip (with your user ID and password) to any other candidate, anyone found doing so will be disqualified from the test.</li>
-          <li>• After you have entered your login name and password, and the system has logged you in the test, use only the MOUSE during the test.</li>
-          <li>• If you try to use keyboard, a warning message will be displayed on your screen. If this message appears on your screen more than once you can be disqualified from the test.</li>
-          <li>• Anyone found with a screen showing some thing other than the Admission Test will be disqualified from the test and removed from the list of candidates for admission.</li>
-          <li>• Any evidence of cheating, use of unfair means or non-compliance with the instructions will disqualify the candidate from the test and his/her name will be removed from the list of candidates for admission.</li>
-          <li>• Rough work should be done on the Rough Sheet attached with your Verification Slip.</li>
-          <li>• When you are told, click on the box below to indicate that you have read and understood the instructions.</li>
-          <li>• When you are told, only then click on the Start Test button below.</li>
-          <li>• The time displayed on your screen is the Time Left for that particular section only.</li>
-          <li>• The number showing Total Questions, displayed on your screen, is the number of questions in that particular section.</li>
-        </ul>
-        </div>
-        
-        <div className="card test-summary">
-          <h2><strong>Test Summary:</strong></h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Section</th>
-                <th>Time Allocated (in Minutes)</th>
-                <th>No. Of Questions</th>
-                <th>Weightage %</th>
-                <th>Negative Marking</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Mathematics</td>
-                <td>5</td>
-                <td>5</td>
-                <td>25</td>
-                <td>No</td>
-              </tr>
-              <tr>
-                <td>IQ and Analytical Skills</td>
-                <td>5</td>
-                <td>5</td>
-                <td>25</td>
-                <td>No</td>
-              </tr>
-              <tr>
-                <td>Science</td>
-                <td>5</td>
-                <td>5</td>
-                <td>25</td>
-                <td>Yes</td>
-              </tr>
-              <tr>
-                <td>English</td>
-                <td>5</td>
-                <td>5</td>
-                <td>25</td>
-                <td>Yes</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        
-        <div className="mt-4">
-          <label className="block">
-            <input type="checkbox" onChange={handleCheckboxChange} />
-            I have carefully read the instructions and I agree to follow them
-          </label>
-          <button 
-            className={`mt-4 px-4 py-2 bg-blue-500 text-white rounded ${!isChecked ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={!isChecked}
-            onClick={handleStartTest}>
-            Start Test
-          </button>
-        </div>
-      </div>
-    </div>
+    <TableContainer component={Paper} my={4}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Subject</TableCell>
+            <TableCell>No. Of Questions</TableCell>
+            <TableCell>Weightage %</TableCell>
+            <TableCell>Time Allocated (min)</TableCell>
+            <TableCell>Negative Marking</TableCell>
+          </TableRow>
+        </TableHead>
+
+        <TableBody>
+          {data.map((item) => (
+            <TableRow key={item.SUBJECT_ID}>
+              <TableCell>{item.NODE_NAME}</TableCell>
+              <TableCell>{item.NOQ}</TableCell>
+              <TableCell>{item.WTG}</TableCell>
+              <TableCell>{item.TIME_ALLOCATED}</TableCell>
+              <TableCell>{item.IS_NEGATIVE_MARKING ? "Yes" : "No"}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
 
-export default Instruction;
+const Instructions = () => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
+  const [checked, setChecked] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const loginResult = useLoginStore((state) => state.loginResult);
+  const setPaperData = usePaperStore((state) => state.setData);
+
+  const setCandidateId = useProgressStore((state) => state.setCandidateId);
+  const setSqpId = useProgressStore((state) => state.setSqpId);
+  const setQpId = useProgressStore((state) => state.setQpId);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const cookies = new Cookies();
+        const token = cookies.get("token");
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}:${
+          import.meta.env.VITE_API_PORT
+        }/paper/getPaper`;
+
+        const response = await fetch(apiUrl, {
+          method: "GET",
+          headers: {
+            apikey: token,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const result = await response.json();
+        // console.log('API Response:', result);
+
+        // Check if the message is 'success store in zustand'
+        if (result.message === "success") {
+          setPaperData(result.data);
+          setLoading(false);
+          setError(null);
+          setCandidateId(loginResult?.user?.CANDIDATE_ID || "");
+          setSqpId(result?.SQP_ID || "");
+          setQpId(result?.QP_ID || "");
+        } else {
+          throw new Error("API response indicates failure.");
+          setLoading(false);
+          setError("An error occurred while fetching data.");
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+        setLoading(false);
+        setError("Something went wrong!!");
+      }
+    };
+
+    fetchData();
+  }, [setPaperData]);
+
+  const handleCheckboxChange = (event) => {
+    setChecked(event.target.checked);
+  };
+
+  const handleStartTest = () => {
+    navigate("/home");
+  };
+
+  return (
+    <Container
+      className="px-4"
+      maxWidth="md"
+      sx={{
+        p: 8,
+        borderRadius: 2,
+        boxShadow: 3,
+        backgroundColor: isDarkMode ? "background.default" : "background.paper",
+        color: isDarkMode ? "text.primary" : "text.secondary",
+      }}
+    >
+      <CandidateInfo loginResult={loginResult} />
+      <Header />
+      <GeneralInstructions />
+
+      {loading && <CircularProgress className="self-center" />}
+      {!error && (
+        <TestSummary data={usePaperStore((state) => state.getData())} />
+      )}
+
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={checked}
+            onChange={handleCheckboxChange}
+            name="checkedA"
+          />
+        }
+        label="I have carefully read the instructions and I agree to follow them"
+        sx={{ color: isDarkMode ? "text.primary" : "text.secondary" }}
+      />
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleStartTest}
+        disabled={!checked && !loading && !error}
+      >
+        Start Test
+      </Button>
+    </Container>
+  );
+};
+
+export default Instructions;

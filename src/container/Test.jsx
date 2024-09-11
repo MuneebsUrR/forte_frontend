@@ -5,9 +5,8 @@ import useProgressStore from '../Hooks/ProgressStore';
 import Info from '../components/Info';
 import Question from '../components/Questions';
 import Sidebar from '../components/Sidebar';
-import { logQuestionDetails } from '../utils/logUtils';
+import ActivityTracker from '../components/ActivityTracker';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
-import { MathJax } from 'better-react-mathjax';
 
 const SectionDialog = ({ open, onClose, title, content, primaryAction, secondaryAction }) => (
   <Dialog open={open} onClose={() => onClose(false)}>
@@ -16,12 +15,11 @@ const SectionDialog = ({ open, onClose, title, content, primaryAction, secondary
       <p>{content}</p>
     </DialogContent>
     <DialogActions>
-      <Button onClick={() => onClose(true)} color="primary" aria-label={primaryAction}>{primaryAction}</Button>
-      <Button onClick={() => onClose(false)} color="secondary" aria-label={secondaryAction}>{secondaryAction}</Button>
+      <Button onClick={() => onClose(true)} color="primary">{primaryAction}</Button>
+      <Button onClick={() => onClose(false)} color="secondary">{secondaryAction}</Button>
     </DialogActions>
   </Dialog>
 );
-
 
 const LastQuestionMessage = () => (
   <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 text-center">
@@ -55,17 +53,14 @@ const QuestionNavigation = ({
 
 const Home = () => {
   const navigate = useNavigate();
-  const [selectedOptions, setSelectedOptions] = useState([]);
-  const [questionStatuses, setQuestionStatuses] = useState([]);
-  const [reviewedQuestions, setReviewedQuestions] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const [questionStatuses, setQuestionStatuses] = useState({});
+  const [reviewedQuestions, setReviewedQuestions] = useState({});
   const [currentSubjectIndex, setCurrentSubjectIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLastQuestionMessage, setShowLastQuestionMessage] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [finalDialog, setFinalDialog] = useState(false);
-
-  const [startTime, setStartTime] = useState(Date.now());
-
 
   const candidateId = useProgressStore((state) => state.candidateId);
   const sqpId = useProgressStore((state) => state.sqpId);
@@ -79,6 +74,7 @@ const Home = () => {
   const data = getData();
 
   useEffect(() => {
+    
     if (data && data.length > 0) {
       const currentSubject = data[currentSubjectIndex];
       if (currentSubject) {
@@ -87,8 +83,6 @@ const Home = () => {
       }
     }
   }, [currentQuestionIndex, currentSubjectIndex, data]);
-
-
 
   const handleNext = () => {
     const isLastQuestion = currentQuestionIndex === data[currentSubjectIndex].questions.length - 1;
@@ -103,48 +97,37 @@ const Home = () => {
     }
   };
 
+
   const moveToNextQuestion = () => {
     const currentSubject = data[currentSubjectIndex];
     if (currentSubject) {
-      const newQuestionStatuses = [...questionStatuses];
-      let isAttempted = -1; // Default to skipped
-      let selectedAnswer = '-1'; // Default selected answer for skipped questions
+      const newQuestionStatuses = { ...questionStatuses };
+      
 
-      // Check if a choice was made for the current question
-      if (selectedOptions[currentQuestionIndex] !== undefined && selectedOptions[currentQuestionIndex] !== '') {
-        // Check if the question was reviewed
-        if (newQuestionStatuses[currentQuestionIndex] === 'reviewed') {
-          isAttempted = 2; // Mark as reviewed
+      if (selectedOptions[currentQuestionIndex] !== undefined) {
+        if (selectedOptions[currentQuestionIndex] === '') {
+          newQuestionStatuses[currentQuestionIndex] = 'skipped';
+        } else if (reviewedQuestions[currentQuestionIndex]) {
+          newQuestionStatuses[currentQuestionIndex] = 'completed';
         } else {
-          isAttempted = 1; // Mark as completed
+          newQuestionStatuses[currentQuestionIndex] = 'completed';
         }
-        selectedAnswer = selectedOptions[currentQuestionIndex]; // Set the selected answer
-        newQuestionStatuses[currentQuestionIndex] = 'completed';
       } else {
-        // If no choice was made, mark as skipped
         newQuestionStatuses[currentQuestionIndex] = 'skipped';
       }
 
       setQuestionStatuses(newQuestionStatuses);
-
-      // Log details and update time tracking
-      logQuestionDetails(candidateId, sqpId, qpId, startTime, currentSubjectIndex, currentQuestionIndex, selectedOptions, isAttempted, data);
 
       if (currentQuestionIndex < currentSubject.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else if (currentSubjectIndex < data.length - 1) {
         setCurrentSubjectIndex(currentSubjectIndex + 1);
         setCurrentQuestionIndex(0);
-        setQuestionStatuses([]);
-        setReviewedQuestions([]);
+        setQuestionStatuses({});
+        setReviewedQuestions({});
       }
-
-      // Set the start time for the new question
-      setStartTime(Date.now());
     }
-};
-
-
+  };
 
   const handleBack = () => {
     if (currentQuestionIndex > 0) {
@@ -160,13 +143,13 @@ const Home = () => {
   };
 
   const handleOptionChange = (e) => {
-    const newSelectedOptions = [...selectedOptions];
+    const newSelectedOptions = { ...selectedOptions };
     newSelectedOptions[currentQuestionIndex] = e.target.value;
     setSelectedOptions(newSelectedOptions);
   };
 
   const handleReset = () => {
-    const newSelectedOptions = [...selectedOptions];
+    const newSelectedOptions = { ...selectedOptions };
     newSelectedOptions[currentQuestionIndex] = '';
     setSelectedOptions(newSelectedOptions);
   };
@@ -176,37 +159,28 @@ const Home = () => {
       return;
     }
 
-    const newReviewedQuestions = [...reviewedQuestions];
+    const newReviewedQuestions = { ...reviewedQuestions };
     newReviewedQuestions[currentQuestionIndex] = true;
     setReviewedQuestions(newReviewedQuestions);
 
-    const newQuestionStatuses = [...questionStatuses];
-    if (!newQuestionStatuses[currentQuestionIndex] || newQuestionStatuses[currentQuestionIndex] === 'skipped' || newQuestionStatuses[currentQuestionIndex] === 'completed') {
+    const newQuestionStatuses = { ...questionStatuses };
+
+    if (newQuestionStatuses[currentQuestionIndex] === 'skipped' || newQuestionStatuses[currentQuestionIndex] === 'completed') {
+      newQuestionStatuses[currentQuestionIndex] = 'reviewed';
+    } else if (!newQuestionStatuses[currentQuestionIndex]) {
       newQuestionStatuses[currentQuestionIndex] = 'reviewed';
     }
     setQuestionStatuses(newQuestionStatuses);
-
-    const isAttempted = 2; // Mark as reviewed
-    const selectedAnswer = selectedOptions[currentQuestionIndex];
-
-    // Log details and update time tracking
-    logQuestionDetails(candidateId, sqpId, qpId, startTime, currentSubjectIndex, currentQuestionIndex, selectedOptions, isAttempted, data);
 
     if (currentQuestionIndex < data[currentSubjectIndex].questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else if (currentSubjectIndex < data.length - 1) {
       setCurrentSubjectIndex(currentSubjectIndex + 1);
       setCurrentQuestionIndex(0);
-      setQuestionStatuses([]);
-      setReviewedQuestions([]);
+      setQuestionStatuses({});
+      setReviewedQuestions({});
     }
-
-    // Set the start time for the new question
-    setStartTime(Date.now());
   };
-
-
-
 
   const handleJumpToQuestion = (questionIndex) => {
     setCurrentQuestionIndex(questionIndex);
@@ -215,11 +189,15 @@ const Home = () => {
   const handleDialogClose = (moveToNextSection) => {
     if (moveToNextSection) {
       const currentSubject = data[currentSubjectIndex];
-      const newQuestionStatuses = [...questionStatuses];
+      const newQuestionStatuses = { ...questionStatuses };
       const lastQuestionIndex = currentSubject.questions.length - 1;
 
       if (selectedOptions[lastQuestionIndex] !== undefined) {
-        newQuestionStatuses[lastQuestionIndex] = selectedOptions[lastQuestionIndex] === '' ? 'skipped' : 'completed';
+        if (selectedOptions[lastQuestionIndex] === '') {
+          newQuestionStatuses[lastQuestionIndex] = 'skipped';
+        } else {
+          newQuestionStatuses[lastQuestionIndex] = 'completed';
+        }
       } else {
         newQuestionStatuses[lastQuestionIndex] = 'skipped';
       }
@@ -238,46 +216,11 @@ const Home = () => {
     }
   };
 
-  const currentSubject = data[currentSubjectIndex];
-  const currentQuestion = currentSubject?.questions[currentQuestionIndex];
-
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      event.preventDefault();
-      const message = "Are you sure you want to leave? Your progress will be lost.";
-      event.returnValue = message; // Standard way for most browsers
-      return message; // Some browsers require this to display the message
-    };
-
-    const handlePopState = (event) => {
-      event.preventDefault();
-      const message = "Are you sure you want to leave? Your progress will be lost.";
-      if (window.confirm(message)) {
-        navigate(-1); // Only navigate back if the user confirms
-      } else {
-        window.history.pushState(null, document.title, window.location.href); // Prevent navigation
-      }
-    };
-
-    // Prevent refresh and customize the prompt message
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // Prevent backward navigation
-    window.history.pushState(null, document.title, window.location.href);
-    window.addEventListener('popstate', handlePopState);
-
-    // Cleanup function to remove event listeners
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [navigate]);
-
-
+  const currentSubject = data ? data[currentSubjectIndex] : null;
+  const currentQuestion = currentSubject ? currentSubject.questions[currentQuestionIndex] : null;
 
   return (
-    <MathJax>
-    <div className="flex h-[80vh]">
+    <div className="flex">
       <div className="flex-1 p-4">
         {currentSubject && (
           <>
@@ -313,7 +256,15 @@ const Home = () => {
         currentQuestionIndex={currentQuestionIndex}
         onJumpToQuestion={handleJumpToQuestion}
       />
-
+      {/* Add the ActivityTracker component */}
+      <ActivityTracker
+        candidateId={candidateId}
+        sqpId={sqpId}
+        qpId={qpId}
+        currentQuestion={currentQuestion}
+        selectedAnswer={selectedOptions[currentQuestionIndex]}
+        isAttempted={questionStatuses[currentQuestionIndex] === 'completed' || questionStatuses[currentQuestionIndex] === 'reviewed'}
+      />
       <SectionDialog
         open={openDialog}
         onClose={handleDialogClose}
@@ -332,7 +283,6 @@ const Home = () => {
         secondaryAction="Continue Reviewing"
       />
     </div>
-    </MathJax>
   );
 };
 
