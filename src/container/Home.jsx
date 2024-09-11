@@ -7,6 +7,7 @@ import Question from '../components/Questions';
 import Sidebar from '../components/Sidebar';
 import ActivityTracker from '../components/ActivityTracker';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
+import { MathJax } from 'better-react-mathjax';
 
 const SectionDialog = ({ open, onClose, title, content, primaryAction, secondaryAction }) => (
   <Dialog open={open} onClose={() => onClose(false)}>
@@ -220,6 +221,7 @@ const Home = () => {
   const currentQuestion = currentSubject ? currentSubject.questions[currentQuestionIndex] : null;
 
   return (
+    <MathJax>
     <div className="flex">
       <div className="flex-1 p-4">
         {currentSubject && (
@@ -283,6 +285,7 @@ const Home = () => {
         secondaryAction="Continue Reviewing"
       />
     </div>
+    </MathJax>
   );
 };
 
